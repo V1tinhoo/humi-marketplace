@@ -1,0 +1,278 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, Camera, PartyPopper } from "lucide-react";
+import { Stepper } from "@/components/booking/Stepper";
+import { Field } from "@/components/auth/AuthShell";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Container, DemoNotice } from "@/components/ui/primitives";
+import { categories } from "@/data/categories";
+import { categoryVisuals } from "@/components/home/CategoryCard";
+import { useAuth } from "@/lib/auth";
+import { PLATFORM_LIMITS, cn, formatPrice, sleep } from "@/lib/utils";
+import type { CategoryId } from "@/types";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { viewerTimeZone } from "@/lib/time";
+import { FormError } from "@/components/ui/FormError";
+import { AvatarUpload } from "@/components/ui/AvatarUpload";
+import { CountrySelect, RegionSelect, TagPicker } from "@/components/ui/ProfileFields";
+import { INTEREST_SUGGESTIONS } from "@/data/places";
+
+const STEPS = ["About you", "Interests", "Rates", "Confirm"];
+const LANGS = ["English", "Portuguese", "Spanish", "French", "German", "Italian", "Arabic", "Hindi", "Japanese", "Mandarin"];
+
+export default function HostApplyPage() {
+  const { user, mode, refreshProfile } = useAuth();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
+  // Show the photo already on the profile, if any.
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !user) return;
+    supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle().then(({ data: p }) => setAvatar(p?.avatar_url ?? null));
+  }, [user]);
+  const [step, setStep] = useState(0);
+  const [data, setData] = useState({
+    name: user?.name ?? "",
+    country: "",
+    region: "",
+    bio: "",
+    languages: [] as string[],
+    interests: [] as string[],
+    cats: [] as CategoryId[],
+    rate: 5,
+    adult: false,
+    rules: false,
+  });
+  const [state, setState] = useState<"idle" | "loading" | "done">("idle");
+
+  const toggleIn = <K extends "languages" | "interests" | "cats">(k: K, v: (typeof data)[K][number]) =>
+    setData((d) => {
+      const arr = d[k] as string[];
+      return { ...d, [k]: arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v] };
+    });
+
+  const valid = [
+    data.name.trim().length > 1 && data.country.trim().length > 1 && data.bio.trim().length >= 20 && data.languages.length > 0,
+    data.interests.length >= 2 && data.cats.length >= 1,
+    true,
+    data.adult && data.rules,
+  ][step];
+
+  const submit = async () => {
+    setState("loading");
+    setSubmitError(null);
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !user) {
+      await sleep(1400);
+      setState("done");
+      return;
+    }
+    // Members become hosts through a server-side function (roles can't be edited directly).
+    const { data: hostId, error: rpcError } = await supabase.rpc("become_host");
+    const fail = (msg: string) => {
+      setSubmitError(msg);
+      setState("idle");
+    };
+    if (rpcError || !hostId) return fail(rpcError?.message ?? "Couldn't create your host profile.");
+    const firstName = data.name.trim().split(" ")[0].slice(0, 40);
+    const [a, b] = await Promise.all([
+      supabase
+        .from("host_profiles")
+        .update({
+          display_name: firstName,
+          description: data.bio.trim(),
+          categories: data.cats,
+          session_price: data.rate,
+          // Availability is entered in the host's local time, so the profile needs their real zone (not the UTC default).
+          timezone: viewerTimeZone(),
+        })
+        .eq("id", hostId),
+      supabase
+        .from("profiles")
+        .update({ full_name: data.name.trim(), country: data.country.trim(), region: data.region || null, languages: data.languages, interests: data.interests })
+        .eq("id", user.id),
+    ]);
+    const err = a.error ?? b.error;
+    if (err) return fail(err.message);
+    await refreshProfile();
+    setState("done");
+  };
+
+  if (state === "done") {
+    return (
+      <Container className="max-w-xl py-24 text-center">
+        <span className="mx-auto grid size-20 place-items-center rounded-full bg-lavender"><PartyPopper className="size-9" strokeWidth={1.75} /></span>
+        <h1 className="mt-8 text-3xl font-extrabold tracking-tight sm:text-4xl">{mode === "supabase" ? "Your host profile is ready" : "Application received (demo)"}</h1>
+        <p className="mt-3 text-plum-soft">
+          {mode === "supabase"
+            ? `Thanks, ${data.name.split(" ")[0]}! Next: add a photo and your weekly availability in the dashboard, then switch on “Listed in Explore”. Identity verification will be added before launch.`
+            : `Thanks, ${data.name.split(" ")[0]}! In the live product, our team would review your profile and invite you to verify your identity. In this preview, nothing was submitted.`}
+        </p>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <ButtonLink href={mode === "supabase" || user?.role === "host" ? "/dashboard" : "/login?role=host&next=/dashboard"}>{mode === "supabase" ? "Go to host dashboard" : "Preview host dashboard"}</ButtonLink>
+          <ButtonLink href="/" variant="secondary">Back home</ButtonLink>
+        </div>
+      </Container>
+    );
+  }
+
+  return (
+    <Container className="max-w-3xl pb-24 pt-10">
+      <p className="text-sm font-medium text-plum-soft">Host application</p>
+      <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">Let&apos;s set up your host profile</h1>
+      <div className="mt-8">
+        <Stepper steps={STEPS} current={step} onJump={setStep} />
+      </div>
+
+      <div key={step} className="mt-10 animate-fade-up rounded-[var(--radius-card)] bg-white p-6 ring-1 ring-line sm:p-8">
+        {step === 0 && (
+          <div className="space-y-5">
+            {mode === "supabase" ? (
+              <AvatarUpload value={avatar} name={data.name} onChange={setAvatar} size="md" />
+            ) : (
+              <div className="flex items-center gap-4">
+                <span className="grid size-20 shrink-0 place-items-center rounded-2xl border-2 border-dashed border-lavender bg-cream text-plum-soft" aria-hidden>
+                  <Camera className="size-6" />
+                </span>
+                <p className="text-sm text-plum-soft">A clear, friendly photo of your face. Photo uploads work once Supabase is connected.</p>
+              </div>
+            )}
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="First name" name="hname" value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} />
+              <CountrySelect value={data.country} onChange={(v) => setData((d) => ({ ...d, country: v, region: v === d.country ? d.region : "" }))} />
+              <RegionSelect country={data.country} value={data.region} onChange={(v) => setData((d) => ({ ...d, region: v }))} />
+            </div>
+            <div>
+              <label htmlFor="hbio" className="text-sm font-semibold">Introduce yourself</label>
+              <textarea
+                id="hbio"
+                rows={4}
+                value={data.bio}
+                onChange={(e) => setData({ ...data, bio: e.target.value })}
+                placeholder="What do you love talking about? What's a conversation with you like?"
+                className="mt-2 w-full rounded-xl bg-white p-4 text-[15px] ring-1 ring-line outline-none focus:ring-2 focus:ring-lavender"
+              />
+              <p className="mt-1 text-xs text-plum-soft">{data.bio.trim().length}/20 characters minimum</p>
+            </div>
+            <ChipGroup label="Languages you speak" options={LANGS} selected={data.languages} onToggle={(v) => toggleIn("languages", v)} />
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="space-y-8">
+            <div>
+              <p className="text-sm font-semibold">What kind of sessions do you want to offer?</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {categories.map((c) => {
+                  const Icon = categoryVisuals[c.id].icon;
+                  const on = data.cats.includes(c.id);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => toggleIn("cats", c.id)}
+                      aria-pressed={on}
+                      className={cn("flex items-start gap-3 rounded-2xl p-4 text-left transition", on ? "bg-lilac ring-2 ring-plum" : "bg-cream ring-1 ring-line hover:ring-lavender")}
+                    >
+                      <Icon className="mt-0.5 size-5 shrink-0" />
+                      <span>
+                        <span className="block font-semibold">{c.title}</span>
+                        <span className="block text-sm text-plum-soft">{c.description}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <TagPicker
+              label="Pick at least two interests"
+              value={data.interests}
+              onChange={(v) => setData((d) => ({ ...d, interests: v }))}
+              suggestions={INTEREST_SUGGESTIONS}
+              max={20}
+            />
+          </div>
+        )}
+
+        {step === 2 && (
+          <div>
+            <div className="flex items-baseline justify-between">
+              <label htmlFor="hrate" className="font-semibold">Your rate per 30 minutes</label>
+              <span className="text-4xl font-extrabold">{formatPrice(data.rate)}</span>
+            </div>
+            <input id="hrate" type="range" min={PLATFORM_LIMITS.minPer30} max={PLATFORM_LIMITS.maxPer30} value={data.rate} onChange={(e) => setData({ ...data, rate: Number(e.target.value) })} className="mt-5 w-full accent-[#493C62]" />
+            <div className="mt-1 flex justify-between text-xs text-plum-soft">
+              <span>{formatPrice(PLATFORM_LIMITS.minPer30)}</span>
+              <span>{formatPrice(PLATFORM_LIMITS.maxPer30)} limit</span>
+            </div>
+            <p className="mt-6 rounded-2xl bg-blush p-4 text-sm">Most new hosts start between $4 and $7. You can change your rate any time from your dashboard.</p>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4">
+            <div className="rounded-2xl bg-cream p-5 text-sm">
+              <p><span className="text-plum-soft">Name:</span> <strong>{data.name}</strong> · {data.country}</p>
+              <p className="mt-1"><span className="text-plum-soft">Languages:</span> {data.languages.join(", ")}</p>
+              <p className="mt-1"><span className="text-plum-soft">Interests:</span> {data.interests.join(", ")}</p>
+              <p className="mt-1"><span className="text-plum-soft">Rate:</span> {formatPrice(data.rate)} / 30 min</p>
+            </div>
+            <Check label="I'm 18 or older and will complete identity verification before hosting." checked={data.adult} onChange={(v) => setData({ ...data, adult: v })} />
+            <Check
+              label="I'll follow the community guidelines: no dating, no therapy or professional advice, no sexual content, and no moving sessions off HUMI."
+              checked={data.rules}
+              onChange={(v) => setData({ ...data, rules: v })}
+            />
+            {mode === "demo" && <DemoNotice>This application isn&apos;t sent anywhere in the beta preview.</DemoNotice>}
+            <FormError message={submitError} />
+          </div>
+        )}
+      </div>
+
+      <div className="mt-8 flex justify-between">
+        <Button variant="ghost" onClick={() => setStep(step - 1)} disabled={step === 0}>
+          <ArrowLeft className="size-4" /> Back
+        </Button>
+        {step < STEPS.length - 1 ? (
+          <Button size="lg" onClick={() => setStep(step + 1)} disabled={!valid}>Continue <ArrowRight className="size-4" /></Button>
+        ) : (
+          <Button size="lg" onClick={submit} disabled={!valid} loading={state === "loading"}>Submit application</Button>
+        )}
+      </div>
+    </Container>
+  );
+}
+
+function ChipGroup({ label, options, selected, onToggle }: { label: string; options: string[]; selected: string[]; onToggle: (v: string) => void }) {
+  return (
+    <div>
+      <p className="text-sm font-semibold">{label}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {options.map((o) => {
+          const on = selected.includes(o);
+          return (
+            <button
+              key={o}
+              type="button"
+              onClick={() => onToggle(o)}
+              aria-pressed={on}
+              className={cn("rounded-full px-3.5 py-2 text-sm font-medium transition", on ? "bg-plum text-white" : "bg-cream ring-1 ring-line hover:ring-lavender")}
+            >
+              {o}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3 rounded-2xl bg-white p-4 text-sm ring-1 ring-line">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[#493C62]" />
+      <span>{label}</span>
+    </label>
+  );
+}

@@ -1,26 +1,129 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ------------------------------------------------------------------
+   HUMI design tokens
+   Brand palette is fixed; derived shades exist only for text/borders
+   so contrast stays accessible on light surfaces.
+------------------------------------------------------------------- */
+@theme {
+  --color-lavender: #b9a7ef;
+  --color-lavender-strong: #a18be6;
+  --color-blush: #fceaf2;
+  --color-cream: #fff9fc;
+  --color-plum: #493c62;
+  --color-plum-deep: #352b4a;
+  --color-plum-soft: #6b6082;
+  --color-lilac: #e5ddfb;
+  --color-rose: #e9bfd3;
+  --color-line: #ece4f3;
+  --color-online: #2f9e6e;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --radius-card: 1.25rem;
+
+  --shadow-soft: 0 1px 2px rgb(73 60 98 / 0.04), 0 8px 24px -12px rgb(73 60 98 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(73 60 98 / 0.05), 0 24px 48px -20px rgb(73 60 98 / 0.32);
+
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes shimmer {
+    from { background-position: -400px 0; }
+    to { background-position: 400px 0; }
   }
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-plum);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-lilac);
+  color: var(--color-plum-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-lavender-strong);
+  outline-offset: 2px;
+}
+
+/* LiveKit call UI in HUMI colours (dark stage, lavender accents). */
+.humi-call[data-lk-theme] {
+  --lk-bg: #1c1628;
+  --lk-bg2: #261e36;
+  --lk-bg3: #32284a;
+  --lk-bg4: #3d3258;
+  --lk-bg5: #4a3e68;
+  --lk-fg: #fff9fc;
+  --lk-accent-bg: #b9a7ef;
+  --lk-accent-fg: #352b4a;
+  --lk-accent2: #a18be6;
+  --lk-danger: #c2405a;
+  --lk-border-radius: 14px;
+  --lk-font-family: var(--font-sans);
+}
+.humi-call .lk-chat {
+  border-left: 0;
+  width: 100%;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+.humi-call .lk-chat .lk-chat-header { display: none; }
+.humi-call .lk-chat-messages { flex: 1; min-height: 0; overflow-y: auto; }
+.humi-call .lk-participant-tile { height: 100%; border-radius: 1rem; background: #2d2440; }
+.humi-call .lk-participant-tile video { object-fit: cover; }
+.humi-call .humi-screen .lk-participant-tile video { object-fit: contain; background: #000; }
+.humi-call .humi-mirror .lk-participant-tile video { transform: scaleX(-1); }
+.humi-call .lk-participant-placeholder svg { max-width: 30%; height: auto; opacity: 0.5; }
+.humi-call .humi-device-menu {
+  place-items: center;
+  width: 2rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  padding: 0;
+  background: transparent;
+  color: #fff;
+}
+.humi-call .humi-device-menu:hover { background: #4a3e68; }
+.humi-call .lk-device-menu { color: #352b4a; }
+
+.skeleton {
+  background: linear-gradient(90deg, #f3edf8 0px, #fbf6fd 120px, #f3edf8 240px);
+  background-size: 800px 100%;
+  animation: var(--animate-shimmer);
+}
+
+.text-balance { text-wrap: balance; }
+.text-pretty { text-wrap: pretty; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
