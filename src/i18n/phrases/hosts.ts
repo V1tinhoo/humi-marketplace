@@ -190,4 +190,6 @@ export const hosts: Record<string, string> = {
   Hiking: "Trilhas",
   Karaoke: "Karaokê",
   "Life Experiences": "Experiências de vida",
+  "Video or audio conversation with {name}": "Conversa por vídeo ou áudio com {name}",
+  "Online conversation": "Conversa online",
 };

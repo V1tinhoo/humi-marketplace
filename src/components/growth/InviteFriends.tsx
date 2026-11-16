@@ -5,6 +5,7 @@ import { Check, Copy, Gift, MessageCircle } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { formatBRL } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { SITE_URL } from "@/lib/site";
 import { useT } from "@/i18n/client";
 
 type Rpc = { rpc: (f: string) => PromiseLike<{ data: unknown }> };
@@ -30,7 +31,8 @@ export function InviteFriends({ className }: { className?: string }) {
   }, []);
 
   if (!info) return null;
-  const link = `${typeof window !== "undefined" ? window.location.origin : "https://www.humi.chat"}/?ref=${info.code}`;
+  // Always the official address, even when opened on localhost or a vercel.app copy.
+  const link = `${SITE_URL}/?ref=${info.code}`;
   const message = tr("Come talk with real people from all over the world on HUMI: {link}", { link });
 
   const copy = async () => {

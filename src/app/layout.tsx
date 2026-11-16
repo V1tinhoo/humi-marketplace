@@ -10,6 +10,7 @@ import { cookies, headers } from "next/headers";
 import { I18nProvider } from "@/i18n/client";
 import { COUNTRY_COOKIE } from "@/i18n";
 import { getLocale } from "@/i18n/server";
+import { JsonLd, siteJsonLd } from "@/components/seo/JsonLd";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang={locale === "pt" ? "pt-BR" : "en"} className={inter.variable}>
       <body className="min-h-dvh antialiased">
+        <JsonLd data={siteJsonLd(locale === "pt")} />
         <I18nProvider locale={locale} country={country}>
         <AuthProvider>
           <a

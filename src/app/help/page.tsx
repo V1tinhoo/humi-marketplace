@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { InfoPage, LegalSections, type LegalSection } from "@/components/layout/InfoPage";
 import { getLocale } from "@/i18n/server";
 import { LEGAL } from "@/lib/legal";
+import { JsonLd, faqJsonLd } from "@/components/seo/JsonLd";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getLocale()) === "pt" ? "Central de ajuda" : "Help Center" };
@@ -15,6 +16,11 @@ const pt = (): Content => ({
   intro: "Respostas para as dúvidas mais comuns sobre o HUMI.",
   faqTitle: "Perguntas frequentes",
   faqs: [
+    { q: "O que é o HUMI?", a: "O HUMI é uma plataforma brasileira para conversar por vídeo ou áudio com pessoas reais do mundo todo, pagando por minuto. Dá para bater papo, praticar idiomas como inglês e espanhol, trocar experiências culturais e jogar online com alguém." },
+    { q: "Quanto custa?", a: "Criar conta é grátis. Cada host define o próprio preço por minuto, a partir de R$ 0,30. A cobrança é por segundo e só enquanto vocês dois estão conectados. Não há assinatura nem mensalidade: você coloca saldo com Pix ou cartão e usa quando quiser." },
+    { q: "Dá para praticar inglês conversando com pessoas reais?", a: "Sim. No HUMI você filtra os hosts pelo idioma que falam e conversa por áudio ou vídeo, sem aula formal: é conversa livre sobre o que você quiser, ideal para perder o medo de falar." },
+    { q: "Qual a diferença entre o HUMI e plataformas de aula como Preply ou Cambly?", a: "No HUMI não há aula nem pacote: é conversa livre com pessoas reais, cobrada por minuto. Você pode conversar 5 minutos ou uma hora e paga só pelo tempo conectado, em reais e com Pix." },
+    { q: "Como ganhar dinheiro conversando no HUMI?", a: "Qualquer pessoa maior de 18 anos pode se cadastrar como host, definir o preço por minuto e os horários e receber por cada chamada. Os ganhos ficam disponíveis após o período de retenção e são sacados por Pix." },
     { q: "Como funcionam as chamadas?", a: "Escolha um host que esteja online e comece uma chamada de áudio ou vídeo, ou agende um horário. As chamadas acontecem aqui mesmo no HUMI, com chat e compartilhamento de tela." },
     { q: "Como sou cobrado?", a: "Você adiciona saldo à sua carteira com Pix ou cartão. As chamadas são cobradas por segundo, no preço do host, e só enquanto vocês dois estão conectados. O tempo chamando e as quedas de conexão não são cobrados." },
     { q: "Os hosts são reais?", a: "Sim. Todos os hosts são pessoas reais, maiores de 18 anos, que criaram o próprio perfil no HUMI e definem seus preços e horários. As avaliações vêm de quem realmente conversou com eles." },
@@ -67,6 +73,11 @@ const en = (): Content => ({
   intro: "Answers to the most common questions about HUMI.",
   faqTitle: "Frequently asked questions",
   faqs: [
+    { q: "What is HUMI?", a: "HUMI is a Brazilian platform for paid one-to-one video or audio calls with real people around the world. You can chat, practise languages like English and Spanish, share cultures and play games online with someone." },
+    { q: "How much does it cost?", a: "Creating an account is free. Each host sets their own price per minute, starting at R$ 0.30. Billing is per second and only while you're both connected. There's no subscription: you add balance with Pix or card and use it whenever you want." },
+    { q: "Can I practise English by talking to real people?", a: "Yes. On HUMI you filter hosts by the languages they speak and talk by audio or video, with no formal lessons: free conversation about whatever you like, perfect for getting over the fear of speaking." },
+    { q: "How is HUMI different from lesson platforms like Preply or Cambly?", a: "HUMI has no lessons or packages: it's free conversation with real people, billed per minute. You can talk for 5 minutes or an hour and pay only for the time you're connected, in Brazilian reais with Pix." },
+    { q: "How can I earn money talking on HUMI?", a: "Anyone 18 or older can sign up as a host, set a per-minute price and hours, and get paid for each call. Earnings become available after the holding period and are withdrawn via Pix." },
     { q: "How do calls work?", a: "Pick a host who's online and start an audio or video call, or book a time. Calls happen right here on HUMI, with chat and screen sharing." },
     { q: "How am I charged?", a: "You add balance to your wallet with Pix or card. Calls are billed per second at the host's price, only while you're both connected. Ringing time and dropped connections are not charged." },
     { q: "Are the hosts real?", a: "Yes. Every host is a real person aged 18 or over who created their own profile on HUMI and sets their own prices and hours. Ratings come from people who actually talked to them." },
@@ -110,6 +121,7 @@ export default async function HelpPage() {
   const c = (await getLocale()) === "pt" ? pt() : en();
   return (
     <InfoPage eyebrow={c.eyebrow} title={c.title} intro={c.intro}>
+      <JsonLd data={faqJsonLd(c.faqs)} />
       <section>
         <h2>{c.faqTitle}</h2>
         <div className="divide-y divide-line rounded-2xl bg-white ring-1 ring-line">

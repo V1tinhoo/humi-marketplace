@@ -16,6 +16,8 @@ import { formatBRL } from "@/lib/money";
 import { getLocale, getT } from "@/i18n/server";
 import { intlLocale } from "@/i18n";
 import { countryLabel } from "@/data/places";
+import { JsonLd, ORG_ID } from "@/components/seo/JsonLd";
+import { SITE_URL } from "@/lib/site";
 
 // Rendered per request: the page follows the visitor's language (cookie) and live presence.
 export const dynamic = "force-dynamic";
@@ -24,7 +26,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { data: host } = await getHostById((await params).id);
   const tr = await getT();
   const locale = await getLocale();
-  return { title: host ? tr("{name} from {country}", { name: host.firstName, country: countryLabel(host.country, locale) }) : tr("Host not found") };
+  if (!host) return { title: tr("Host not found") };
+  const title = tr("{name} from {country}", { name: host.firstName, country: countryLabel(host.country, locale) });
+  const description = [
+    host.tagline,
+    tr("Speaks {languages}", { languages: host.languages.map((l) => tr(l)).join(", ") }),
+    tr("From {price} per minute, billed per second", { price: formatBRL(host.priceAudioCents) }),
+  ].filter(Boolean).join(" · ");
+  return { title, description, openGraph: { title, description } };
 }
 
 export default async function HostProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -38,8 +47,28 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => tr(d));
   const sessions = tr(host.sessionsCompleted === 1 ? "{n} session" : "{n} sessions", { n: host.sessionsCompleted });
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: tr("Video or audio conversation with {name}", { name: host.firstName }),
+    url: `${SITE_URL}/hosts/${host.id}`,
+    description: host.tagline || undefined,
+    serviceType: tr("Online conversation"),
+    availableLanguage: host.languages,
+    provider: { "@type": "Person", name: host.firstName, knowsLanguage: host.languages, image: host.photo || undefined },
+    broker: { "@id": ORG_ID },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "BRL",
+      price: (Math.min(host.priceAudioCents, host.priceVideoCents ?? host.priceAudioCents) / 100).toFixed(2),
+      priceSpecification: { "@type": "UnitPriceSpecification", price: (host.priceAudioCents / 100).toFixed(2), priceCurrency: "BRL", unitCode: "MIN", referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MIN" } },
+    },
+    ...(host.reviewCount > 0 ? { aggregateRating: { "@type": "AggregateRating", ratingValue: host.rating.toFixed(1), reviewCount: host.reviewCount, bestRating: 5 } } : {}),
+  };
+
   return (
     <div className="pb-28 lg:pb-24">
+      {!host.isSample && <JsonLd data={jsonLd} />}
       <Container className="pt-6 lg:pt-10">
         <Link href="/explore" className="inline-flex items-center gap-1.5 text-sm font-medium text-plum-soft transition hover:text-plum">
           <ArrowLeft className="size-4" /> {tr("Back to explore")}

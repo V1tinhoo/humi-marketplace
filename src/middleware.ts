@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/supabase/config";
 import { COUNTRY_COOKIE, LOCALE_COOKIE, detectLocale, isLocale } from "@/i18n";
+import { REDIRECT_HOSTS, SITE_URL } from "@/lib/site";
 
 /** Routes that require a signed-in user (role checks happen in the page). */
 const PROTECTED = ["/account", "/dashboard", "/become-a-host/apply", "/reset-password", "/wallet", "/call", "/admin"];
@@ -12,9 +13,15 @@ const YEAR = 60 * 60 * 24 * 365;
  * Link-preview robots (WhatsApp, Instagram/Facebook, Telegram, X…) run on servers abroad, so
  * geolocation would give them English. HUMI's audience is Brazilian: previews use Portuguese.
  */
-const PREVIEW_BOT = /WhatsApp|facebookexternalhit|Facebot|meta-externalagent|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|Pinterest|SkypeUriPreview|Applebot|redditbot|Embedly|Googlebot|bingbot/i;
+const PREVIEW_BOT = /WhatsApp|facebookexternalhit|Facebot|meta-externalagent|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|Pinterest|SkypeUriPreview|Applebot|redditbot|Embedly|Googlebot|bingbot|GPTBot|OAI-SearchBot|ChatGPT-User|ClaudeBot|Claude-SearchBot|Claude-User|PerplexityBot|Perplexity-User|Google-Extended|Amazonbot|DuckAssistBot|CCBot/i;
 
 export async function middleware(request: NextRequest) {
+  // One official address: other domains redirect permanently (same path and query).
+  const reqHost = (request.headers.get("host") ?? "").toLowerCase().split(":")[0];
+  if (REDIRECT_HOSTS.has(reqHost)) {
+    return NextResponse.redirect(SITE_URL + request.nextUrl.pathname + request.nextUrl.search, 308);
+  }
+
   // Language: picked automatically on the first visit (Brazil → Portuguese, elsewhere → English),
   // then remembered. The country comes from Vercel's IP geolocation header.
   const country = request.headers.get("x-vercel-ip-country");
@@ -26,6 +33,8 @@ export async function middleware(request: NextRequest) {
   const finish = (res: NextResponse) => {
     if (!isLocale(saved)) res.cookies.set(LOCALE_COOKIE, locale, { path: "/", maxAge: YEAR, sameSite: "lax" });
     if (country) res.cookies.set(COUNTRY_COOKIE, country, { path: "/", maxAge: YEAR, sameSite: "lax" });
+    // Canonical address for search engines and AI assistants (vercel.app copies point to humi.chat).
+    if (!request.nextUrl.pathname.startsWith("/api/")) res.headers.set("Link", `<${SITE_URL}${request.nextUrl.pathname}>; rel="canonical"`);
     return res;
   };
   return finish(await handle(request));
