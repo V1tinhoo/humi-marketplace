@@ -58,7 +58,7 @@ export default function HostApplyPage() {
     languages: [] as string[],
     interests: [] as string[],
     cats: [] as CategoryId[],
-    rate: 100, // price per minute in cents (R$ 1,00)
+    rate: 50, // starting price per minute in cents (R$ 0,50)
     adult: false,
     rules: false,
   });

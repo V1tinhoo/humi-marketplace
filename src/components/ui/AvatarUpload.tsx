@@ -121,14 +121,19 @@ export function AvatarUpload({
     }
   };
 
+  // Two-step removal on screen (browser confirm() dialogs are blocked in some phone/in-app browsers).
+  const [confirming, setConfirming] = useState(false);
   const remove = async () => {
     if (!supabase || !user || !current) return;
-    if (!confirm(tr("Remove your profile photo?"))) return;
+    setConfirming(false);
     setState("working");
     setError(null);
-    const { error: dbErr } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
-    if (dbErr) setError(dbErr.message);
-    else {
+    setNotice(null);
+    // .select() reports how many rows changed: a save blocked by permissions would otherwise look successful.
+    const { data: rows, error: dbErr } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id).select("id");
+    if (dbErr || !rows?.length) {
+      setError(dbErr ? tr(dbErr.message) : tr("Couldn't remove the photo. Please log in again and retry."));
+    } else {
       await cleanup();
       setPreview(null);
       setCurrent(null);
@@ -182,15 +187,22 @@ export function AvatarUpload({
               >
                 <Upload className="size-3.5" /> {state === "working" ? tr("Uploading…") : shown ? tr("Change photo") : tr("Upload photo")}
               </button>
-              {current && (
+              {current && !confirming && (
                 <button
                   type="button"
-                  onClick={remove}
+                  onClick={() => setConfirming(true)}
                   disabled={state === "working"}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-plum-soft transition hover:bg-blush hover:text-plum disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-[#a3324a] ring-1 ring-[#e9bfd3] transition hover:bg-blush disabled:opacity-50"
                 >
-                  <Trash2 className="size-3.5" /> {tr("Remove")}
+                  <Trash2 className="size-3.5" /> {tr("Remove photo")}
                 </button>
+              )}
+              {current && confirming && (
+                <span className="inline-flex flex-wrap items-center gap-2 rounded-full bg-blush px-3 py-1 text-xs font-semibold">
+                  {tr("Remove your profile photo?")}
+                  <button type="button" onClick={remove} className="rounded-full bg-[#c2405a] px-3 py-1 text-white hover:bg-[#a3324a]">{tr("Yes, remove")}</button>
+                  <button type="button" onClick={() => setConfirming(false)} className="rounded-full px-2 py-1 text-plum-soft hover:text-plum">{tr("Cancel")}</button>
+                </span>
               )}
             </div>
           </>

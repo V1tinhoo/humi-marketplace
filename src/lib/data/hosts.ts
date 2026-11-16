@@ -41,7 +41,7 @@ export function rowToHost(r: PublicHostRow): Host {
     // Real presence: switch on AND seen in the last 3 minutes (computed in the database).
     online: r.is_online ?? false,
     pricePer30: Number(r.session_price),
-    priceAudioCents: r.audio_cents_per_minute ?? 100,
+    priceAudioCents: r.audio_cents_per_minute ?? 50,
     priceVideoCents: r.video_cents_per_minute ?? null,
     formats: (r.call_types ?? []) as SessionFormat[],
     timezone: r.timezone,

@@ -283,4 +283,12 @@ export const dashboard: Record<string, string> = {
   "This withdrawal can no longer be canceled.": "Este saque não pode mais ser cancelado.",
   "A 30-minute call at this price: {total}. Guests pay per second, only while you're both connected.": "Uma chamada de 30 minutos nesse preço: {total}. Os convidados pagam por segundo, só enquanto vocês dois estão conectados.",
   "You can change your price, and add a video price, any time in the dashboard.": "Você pode mudar seu preço, e adicionar um preço para vídeo, quando quiser no painel.",
+  "Complete your profile first: {items}": "Complete seu perfil primeiro: {items}",
+  "Complete all the items above to publish your profile.": "Complete todos os itens acima para publicar seu perfil.",
+  "Complete your profile before publishing.": "Complete seu perfil antes de publicar.",
+  "Changes save automatically": "As alterações são salvas automaticamente",
+  "Not saved": "Não salvo",
+  "Couldn't remove the photo. Please log in again and retry.": "Não foi possível remover a foto. Entre de novo e tente outra vez.",
+  "Remove photo": "Remover foto",
+  "Yes, remove": "Sim, remover",
 };

@@ -3,13 +3,14 @@
 import { useIntlLocale, useLocale, useT } from "@/i18n/client";
 import { countryLabel } from "@/data/places";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   Banknote,
   CalendarClock,
   CalendarDays,
   Check,
+  Loader2,
   CircleDollarSign,
   Clock,
   Eye,
@@ -116,7 +117,7 @@ export function LiveHostDashboard() {
     const { data: rows, error: err } = await supabase.from("host_profiles").update(patch).eq("id", before.id).select("id");
     if (err || !rows?.length) {
       setData((d) => (d ? { ...d, host: before } : d));
-      setToast(err ? tr("Couldn't save: {error}", { error: err.message }) : tr("Couldn't save — please log in again and retry."));
+      setToast(err ? tr("Couldn't save: {error}", { error: tr(err.message) }) : tr("Couldn't save — please log in again and retry."));
       return false;
     }
     setToast(msg);
@@ -157,6 +158,14 @@ export function LiveHostDashboard() {
     { ok: !!data.profile.avatar_url, label: tr("Profile photo") },
   ];
   const ready = checklist.every((c) => c.ok);
+  // Publishing requires a complete profile (also enforced by the database).
+  const publish = async () => {
+    if (!ready) {
+      setToast(tr("Complete your profile first: {items}", { items: checklist.filter((c) => !c.ok).map((c) => c.label.toLowerCase()).join(", ") }));
+      return false;
+    }
+    return updateHost({ is_published: true }, tr("Your profile is now public in Explore"));
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8 lg:pt-10">
@@ -170,7 +179,7 @@ export function LiveHostDashboard() {
             label={tr("Listed in Explore")}
             status={host.is_published ? tr("Public") : tr("Hidden")}
             checked={host.is_published}
-            onChange={(v) => updateHost({ is_published: v }, v ? tr("Your profile is now public") : tr("Your profile is hidden"))}
+            onChange={(v) => (v ? publish() : updateHost({ is_published: false }, tr("Your profile is hidden")))}
           />
           <ToggleChip
             label={tr("Online now")}
@@ -204,11 +213,11 @@ export function LiveHostDashboard() {
             ))}
           </ul>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button size="sm" onClick={() => updateHost({ is_published: true }, tr("Your profile is now public in Explore"))}>
+            <Button size="sm" onClick={publish} disabled={!ready}>
               <Eye className="size-4" /> {tr("Publish my profile")}
             </Button>
             <p className="text-xs text-plum-soft">
-              {ready ? tr("All set — publish to appear in Explore for everyone.") : tr("You can publish now, but complete profiles get more bookings.")}
+              {ready ? tr("All set — publish to appear in Explore for everyone.") : tr("Complete all the items above to publish your profile.")}
             </p>
           </div>
         </div>
@@ -463,7 +472,7 @@ function AvailabilityEditor({ data, reload, setToast }: { data: DashData; reload
     return s;
   }, [data.availability]);
   const [grid, setGrid] = useState<Set<string>>(initial);
-  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"idle" | "pending" | "saving" | "saved" | "error">("idle");
   const [showAll, setShowAll] = useState(false);
   const dirty = grid.size !== initial.size || [...grid].some((k) => !initial.has(k));
   const hours = showAll ? HOURS : HOURS.filter((h) => h >= 7 && h <= 22);
@@ -471,7 +480,7 @@ function AvailabilityEditor({ data, reload, setToast }: { data: DashData; reload
   const toggle = (k: string) => setGrid((g) => { const n = new Set(g); if (n.has(k)) n.delete(k); else n.add(k); return n; });
 
   const save = async () => {
-    setSaving(true);
+    setStatus("saving");
     // Merge contiguous hours into windows per day.
     const rows: { host_id: string; day_of_week: number; start_time: string; end_time: string; timezone: string }[] = [];
     for (let d = 0; d < 7; d++) {
@@ -485,16 +494,30 @@ function AvailabilityEditor({ data, reload, setToast }: { data: DashData; reload
         }
       }
     }
-    const del = await supabase.from("host_availability").delete().eq("host_id", data.host.id);
-    const ins = del.error || rows.length === 0 ? { error: del.error } : await supabase.from("host_availability").insert(rows);
-    setSaving(false);
-    if (ins.error) return setToast(ins.error.message);
-    setToast(tr("Availability saved"));
+    // New windows first, then remove the old ones: the schedule is never empty in between.
+    const old = data.availability.map((w) => w.id);
+    const ins = rows.length ? await supabase.from("host_availability").insert(rows) : { error: null };
+    const del = ins.error || old.length === 0 ? { error: null } : await supabase.from("host_availability").delete().in("id", old);
+    const err = ins.error ?? del.error;
+    if (err) {
+      setStatus("error");
+      return setToast(tr("Couldn't save: {error}", { error: tr(err.message) }));
+    }
+    setStatus("saved");
     reload();
   };
 
+  // Auto-save ~0.8 s after the last click.
+  useEffect(() => {
+    if (!dirty) return;
+    setStatus("pending");
+    const t = setTimeout(save, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [grid]);
+
   return (
-    <Panel title={tr("Weekly availability")} action={<Button size="sm" onClick={save} loading={saving} disabled={!dirty}>{dirty ? tr("Save changes") : <><Check className="size-4" /> {tr("Saved")}</>}</Button>}>
+    <Panel title={tr("Weekly availability")} action={<SaveStatus status={status} />}>
       <p className="-mt-2 mb-5 text-sm text-plum-soft">
         {tr("Click hours to open or close them. Times are in your time zone ({zone}).", { zone: `${tzLabel(data.host.timezone)} · ${data.host.timezone}` })} {tr("{n} hours open per week.", { n: grid.size })}
       </p>
@@ -524,6 +547,15 @@ function AvailabilityEditor({ data, reload, setToast }: { data: DashData; reload
   );
 }
 
+/** "Saving… / Saved" indicator for auto-saved sections. */
+function SaveStatus({ status }: { status: "idle" | "pending" | "saving" | "saved" | "error" }) {
+  const tr = useT();
+  if (status === "idle") return <span className="text-xs text-plum-soft">{tr("Changes save automatically")}</span>;
+  if (status === "error") return <span className="text-xs font-semibold text-[#a3324a]">{tr("Not saved")}</span>;
+  if (status === "saved") return <span className="inline-flex items-center gap-1 text-xs font-semibold text-online"><Check className="size-3.5" /> {tr("Saved")}</span>;
+  return <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-plum-soft"><Loader2 className="size-3.5 animate-spin" /> {tr("Saving…")}</span>;
+}
+
 /* ------------------------------ Profile ------------------------------ */
 const TIMEZONES: string[] = (() => {
   try {
@@ -533,7 +565,7 @@ const TIMEZONES: string[] = (() => {
   }
 })();
 
-function ProfileEditor({ data, reload, setToast }: { data: DashData; reload: () => Promise<void>; setToast: (s: string) => void }) {
+function ProfileEditor({ data, reload }: { data: DashData; reload: () => Promise<void>; setToast?: (s: string) => void }) {
   const tr = useT();
   const supabase = getSupabaseBrowserClient()!;
   const { host, profile } = data;
@@ -552,12 +584,12 @@ function ProfileEditor({ data, reload, setToast }: { data: DashData; reload: () 
     interests: profile.interests.join(", "),
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"idle" | "pending" | "saving" | "saved" | "error">("idle");
+  const firstRender = useRef(true);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
   const toggleIn = <T extends string>(arr: T[], v: T) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const save = async () => {
     const n: Record<string, string> = {};
     if (!f.display_name.trim() || f.display_name.length > 40) n.display_name = "1–40 characters.";
     if (f.tagline.length > 140) n.tagline = "Max 140 characters.";
@@ -565,8 +597,8 @@ function ProfileEditor({ data, reload, setToast }: { data: DashData; reload: () 
     if (f.call_types.length === 0) n.call_types = tr("Offer at least one format.");
     if (!isValidTimeZone(f.timezone)) n.timezone = tr("Pick a valid time zone.");
     setErrors(n);
-    if (Object.keys(n).length) return;
-    setSaving(true);
+    if (Object.keys(n).length) return setStatus("error");
+    setStatus("saving");
     const tzChanged = f.timezone !== host.timezone;
     const [a, b] = await Promise.all([
       supabase.from("host_profiles").update({
@@ -589,15 +621,34 @@ function ProfileEditor({ data, reload, setToast }: { data: DashData; reload: () 
     if (!a.error && tzChanged && data.availability.length) {
       await supabase.from("host_availability").update({ timezone: f.timezone }).eq("host_id", host.id);
     }
-    setSaving(false);
     const err = a.error ?? b.error;
-    if (err) return setErrors({ form: err.message });
-    setToast(tr("Profile saved"));
+    if (err) {
+      setStatus("error");
+      return setErrors({ form: tr(err.message) });
+    }
+    setErrors({});
+    setStatus("saved");
     reload();
   };
 
+  // Auto-save ~1 s after the last change (no "Save" button to forget).
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    setStatus("pending");
+    const t = setTimeout(save, 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [f]);
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    save();
+  };
+
   return (
-    <Panel title={tr("Public profile")}>
+    <Panel title={tr("Public profile")} action={<SaveStatus status={status} />}>
       <form className="grid gap-5 lg:grid-cols-2" onSubmit={submit} noValidate>
         <div className="lg:col-span-2"><FormError message={errors.form} /></div>
         {/* Saves immediately on upload — independent of the "Save profile" button. */}
@@ -652,7 +703,6 @@ function ProfileEditor({ data, reload, setToast }: { data: DashData; reload: () 
             ))}
           </div>
         </div>
-        <div className="lg:col-span-2"><Button type="submit" loading={saving}>{tr("Save profile")}</Button></div>
       </form>
     </Panel>
   );
@@ -709,7 +759,7 @@ function PricingEditor({ host, setToast }: { host: HostProfileRow; setToast: (s:
     ]).then(([p, s]) => {
       const m = Object.fromEntries((s.data ?? []).map((r) => [r.key, Number(r.value)]));
       setLimits({ min: m.price_min_cents_per_minute ?? 30, max: m.price_max_cents_per_minute ?? 500 });
-      const a = p.data?.audio_cents_per_minute ?? 100;
+      const a = p.data?.audio_cents_per_minute ?? 50;
       const v = p.data?.video_cents_per_minute ?? null;
       setLoaded({ audio: a, video: v });
       setAudio((a / 100).toFixed(2).replace(".", ","));

@@ -11,6 +11,7 @@ import {
   Flag,
   LayoutGrid,
   PhoneCall,
+  Power,
   Search,
   Settings,
   ShieldCheck,
@@ -282,6 +283,7 @@ function Reports({ notify }: { notify: (s: string) => void }) {
   );
 }
 
+type Presence = { is_available: boolean; is_online: boolean; last_seen_at: string | null; forced_online_until?: string | null };
 type AdminUser = {
   id: string; email: string; full_name: string; role: string; created_at: string; country: string | null; is_admin: boolean; banned: boolean;
   host_id: string | null; host_published: boolean | null; balance_cents: number; test_balance_cents: number; host_available_cents: number; reports_against: number;
@@ -291,12 +293,17 @@ function UsersTab({ notify }: { notify: (s: string) => void }) {
   const loc = useIntlLocale();
   const [q, setQ] = useState("");
   const [users, setUsers] = useState<AdminUser[] | null>(null);
+  const [presence, setPresence] = useState<Record<string, Presence>>({});
   const [error, setError] = useState<string | null>(null);
   const search = useCallback(async (term: string) => {
-    const { data, error: e } = await rpc<AdminUser[]>("admin_list_users", { p_search: term || null, p_limit: 100 });
+    const [{ data, error: e }, pr] = await Promise.all([
+      rpc<AdminUser[]>("admin_list_users", { p_search: term || null, p_limit: 100 }),
+      rpc<(Presence & { host_id: string })[]>("admin_hosts_presence"),
+    ]);
     if (e) return setError(e.message);
     setError(null);
     setUsers(data ?? []);
+    setPresence(Object.fromEntries((pr.data ?? []).map((p) => [p.host_id, p])));
   }, []);
   useEffect(() => {
     search("");
@@ -320,6 +327,21 @@ function UsersTab({ notify }: { notify: (s: string) => void }) {
     search(q);
   };
 
+  const setOffline = async (u: AdminUser) => {
+    const { error: e } = await rpc("admin_set_host_available", { p_host_id: u.host_id, p_on: false });
+    if (e) return notify(tr(e.message));
+    notify(tr("{name} is now offline", { name: u.full_name }));
+    search(q);
+  };
+  const [forceHours, setForceHours] = useState<Record<string, number>>({});
+  const forceOnline = async (u: AdminUser) => {
+    const hours = forceHours[u.host_id!] ?? 4;
+    const { error: e } = await rpc("admin_force_host_online", { p_host_id: u.host_id, p_hours: hours });
+    if (e) return notify(tr(e.message));
+    notify(tr("{name} is online for {n} h", { name: u.full_name, n: hours }));
+    search(q);
+  };
+  const time = (iso: string) => new Date(iso).toLocaleString(loc, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
   const toggleHost = async (u: AdminUser) => {
     const { error: e } = await rpc("admin_set_host_published", { p_host_id: u.host_id, p_published: !u.host_published });
     if (e) return notify(tr(e.message));
@@ -364,6 +386,20 @@ function UsersTab({ notify }: { notify: (s: string) => void }) {
                   {u.is_admin && <span className="ml-1 rounded-full bg-plum px-2 py-0.5 text-[11px] font-semibold text-white">Admin</span>}
                   {u.banned && <span className="ml-1 rounded-full bg-[#fde8ea] px-2 py-0.5 text-[11px] font-semibold text-[#7a2232]">{tr("Blocked")}</span>}
                   {u.reports_against > 0 && <span className="ml-1 rounded-full bg-blush px-2 py-0.5 text-[11px] font-semibold">{tr("{n} reports", { n: u.reports_against })}</span>}
+                  {u.host_id && presence[u.host_id]?.forced_online_until && (
+                    <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-online/10 px-2 py-0.5 text-[11px] font-semibold text-online">
+                      <span className="size-1.5 rounded-full bg-online" /> {tr("Online until {time}", { time: time(presence[u.host_id].forced_online_until!) })}
+                    </span>
+                  )}
+                  {u.host_id && presence[u.host_id] && !presence[u.host_id].forced_online_until && (
+                    presence[u.host_id].is_online ? (
+                      <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-online/10 px-2 py-0.5 text-[11px] font-semibold text-online"><span className="size-1.5 rounded-full bg-online" /> {tr("Online now")}</span>
+                    ) : presence[u.host_id].is_available ? (
+                      <span className="ml-1 rounded-full bg-cream px-2 py-0.5 text-[11px] font-semibold text-plum-soft ring-1 ring-line" title={tr("Online switch is on, but the host doesn't have the site open")}>{tr("On, away from the site")}</span>
+                    ) : (
+                      <span className="ml-1 rounded-full bg-cream px-2 py-0.5 text-[11px] font-semibold text-plum-soft ring-1 ring-line">{tr("Offline")}</span>
+                    )
+                  )}
                 </p>
                 <p className="truncate text-xs text-plum-soft">{u.email} · {tr("since {date}", { date: new Date(u.created_at).toLocaleDateString(loc) })}</p>
                 <p className="text-xs text-plum-soft">
@@ -375,6 +411,24 @@ function UsersTab({ notify }: { notify: (s: string) => void }) {
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="secondary" onClick={() => money(u, "wallet")}><WalletIcon className="size-3.5" /> {tr("Wallet")}</Button>
                 {u.host_id && <Button size="sm" variant="secondary" onClick={() => money(u, "earnings")}><Banknote className="size-3.5" /> {tr("Earnings")}</Button>}
+                {u.host_id && (
+                  <span className="inline-flex items-center overflow-hidden rounded-full ring-1 ring-line">
+                    <select
+                      value={forceHours[u.host_id] ?? 4}
+                      onChange={(e) => setForceHours((m) => ({ ...m, [u.host_id!]: Number(e.target.value) }))}
+                      aria-label={tr("For how long")}
+                      className="h-8 bg-white pl-2.5 text-xs font-semibold outline-none"
+                    >
+                      {[1, 4, 12, 24].map((n) => <option key={n} value={n}>{n} h</option>)}
+                    </select>
+                    <button type="button" onClick={() => forceOnline(u)} className="inline-flex h-8 items-center gap-1 bg-online/10 px-3 text-xs font-semibold text-online hover:bg-online/20">
+                      <Power className="size-3.5" /> {tr("Set online")}
+                    </button>
+                  </span>
+                )}
+                {u.host_id && (presence[u.host_id]?.is_available || presence[u.host_id]?.forced_online_until) && (
+                  <Button size="sm" variant="secondary" onClick={() => setOffline(u)}><Power className="size-3.5" /> {tr("Set offline")}</Button>
+                )}
                 {u.host_id && (
                   <Button size="sm" variant="secondary" onClick={() => toggleHost(u)}>
                     {u.host_published ? <><EyeOff className="size-3.5" /> {tr("Hide")}</> : <><Eye className="size-3.5" /> {tr("Show")}</>}
