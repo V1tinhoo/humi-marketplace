@@ -246,6 +246,11 @@ export const dashboard: Record<string, string> = {
   "Submit application": "Enviar inscrição",
   "Your price per minute": "Seu preço por minuto",
   // withdrawals
+  "On hold": "Em retenção",
+  "Next release: {date}": "Próxima liberação: {date}",
+  "Holding period: {n} days": "Período de retenção: {n} dias",
+  "Earnings from each call stay on hold for {n} days after the call (to cover refunds and disputes), then become available to withdraw. Minimum withdrawal: {min}.": "Os ganhos de cada chamada ficam {n} dias em retenção depois da chamada (para cobrir reembolsos e contestações) e então ficam disponíveis para saque. Saque mínimo: {min}.",
+  "Withdrawals aren't switched on yet: the database update for withdrawals hasn't been run.": "Os saques ainda não estão ativados: falta rodar a atualização de saques no banco de dados.",
   Withdraw: "Sacar",
   "Available to withdraw": "Disponível para saque",
   "Amount to withdraw": "Valor do saque",

@@ -19,16 +19,16 @@ export async function Hero() {
       </div>
 
       <Container className="grid items-center gap-12 pb-16 pt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-8 lg:pb-28 lg:pt-16">
-        <div className="animate-fade-up">
+        <div className="min-w-0 animate-fade-up">
           <p className="inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pl-1.5 pr-4 text-sm font-medium text-plum ring-1 ring-line backdrop-blur">
             <span className="rounded-full bg-lavender px-2.5 py-0.5 text-xs font-semibold text-plum-deep">{tr("New")}</span>
             {t.hero.eyebrow}
           </p>
           <h1 className="mt-6 text-balance text-[2.6rem] font-extrabold leading-[1.02] tracking-[-0.035em] text-plum sm:text-6xl lg:text-[4.4rem]">
             {tr("The world is full of people")}{" "}
-            <span className="relative whitespace-nowrap">
+            <span className="relative sm:whitespace-nowrap">
               <span className="relative z-10">{tr("worth talking to.")}</span>
-              <svg aria-hidden viewBox="0 0 300 20" preserveAspectRatio="none" className="absolute -bottom-1 left-0 z-0 h-4 w-full text-rose sm:h-5">
+              <svg aria-hidden viewBox="0 0 300 20" preserveAspectRatio="none" className="absolute -bottom-1 left-0 z-0 hidden h-4 w-full text-rose sm:block sm:h-5">
                 <path d="M2 14 C 60 4, 140 4, 298 12" stroke="currentColor" strokeWidth="9" fill="none" strokeLinecap="round" />
               </svg>
             </span>
@@ -70,7 +70,7 @@ export async function Hero() {
           </figure>
 
           {/* floating UI chips */}
-          <div className="absolute left-[30%] top-[44%] z-10 flex items-center gap-3 rounded-2xl bg-white/95 p-2.5 pr-4 shadow-lift ring-1 ring-line backdrop-blur">
+          <div className="absolute left-[6%] top-[44%] z-10 flex max-w-[88%] items-center gap-3 sm:left-[30%] sm:max-w-none rounded-2xl bg-white/95 p-2.5 pr-4 shadow-lift ring-1 ring-line backdrop-blur">
             <span className="grid size-9 place-items-center rounded-xl bg-lavender text-plum-deep">
               <Video className="size-4" />
             </span>

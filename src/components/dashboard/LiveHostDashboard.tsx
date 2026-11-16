@@ -805,6 +805,22 @@ function Finance({ hostId }: { hostId: string }) {
   }, [load]);
 
   const anyTest = (earnings ?? []).some((e) => !e.livemode);
+  // Holding period (from the platform settings) and when the next real earnings are released.
+  const [rules, setRules] = useState<{ holdDays: number; minCents: number }>({ holdDays: 7, minCents: 1000 });
+  useEffect(() => {
+    supabase
+      .from("platform_settings")
+      .select("key, value")
+      .in("key", ["earnings_hold_days", "payout_min_cents"])
+      .then(({ data }) => {
+        const m = Object.fromEntries((data ?? []).map((r) => [r.key, Number(r.value)]));
+        setRules({ holdDays: m.earnings_hold_days ?? 7, minCents: m.payout_min_cents ?? 1000 });
+      });
+  }, [supabase]);
+  const nextRelease = (earnings ?? [])
+    .filter((e) => e.livemode && e.kind === "call" && Date.parse(e.available_at) > Date.now())
+    .map((e) => e.available_at)
+    .sort()[0] ?? null;
   return (
     <div className="space-y-6">
       {anyTest && <DemoNotice>{tr("Some earnings come from")} <strong>{tr("test balance")}</strong> {tr("(test top-ups). They are not real money and can't be paid out.")}</DemoNotice>}
@@ -846,30 +862,17 @@ function Finance({ hostId }: { hostId: string }) {
         )}
       </Panel>
 
-      <Panel title={tr("Earnings history")}>
-        {!earnings ? <Skeleton className="h-24" /> : earnings.length === 0 ? (
-          <p className="text-sm text-plum-soft">{tr("Nothing yet.")}</p>
-        ) : (
-          <ul className="divide-y divide-line text-sm">
-            {earnings.map((e) => (
-              <li key={e.id} className="flex items-center justify-between gap-3 py-2.5">
-                <span>
-                  {e.kind === "call" ? tr("Call earnings") : e.kind === "payout" ? tr("Payout") : e.kind === "refund" ? tr("Refund") : tr("Adjustment")}
-                  {!e.livemode && <span className="ml-2 rounded-full bg-lilac px-1.5 py-0.5 text-[10px] font-semibold uppercase">{tr("test")}</span>}
-                  <span className="block text-xs text-plum-soft">
-                    {new Date(e.created_at).toLocaleString(loc, { dateStyle: "medium", timeStyle: "short" })}
-                    {e.amount_cents > 0 && (new Date(e.available_at) > new Date() ? ` · ${tr("available {date}", { date: new Date(e.available_at).toLocaleDateString(loc, { month: "short", day: "numeric" }) })}` : ` · ${tr("available")}`)}
-                  </span>
-                </span>
-                <span className={cn("font-semibold", e.amount_cents < 0 && "text-plum-soft")}>{e.amount_cents > 0 ? "+" : "−"}{formatBRL(Math.abs(e.amount_cents))}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-
       <Panel title={tr("Withdraw")}>
-        <Withdrawals available={summary === undefined ? null : Number(summary?.available_cents ?? 0)} account={account} payouts={payouts} onChanged={load} />
+        <Withdrawals
+          available={summary === undefined ? null : Number(summary?.available_cents ?? 0)}
+          pending={summary === undefined ? null : Number(summary?.pending_cents ?? 0)}
+          nextReleaseAt={nextRelease}
+          holdDays={rules.holdDays}
+          minCents={rules.minCents}
+          account={account}
+          payouts={payouts}
+          onChanged={load}
+        />
       </Panel>
     </div>
   );

@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         await createPixOrder({ topupId: data.id, amountCents: amount, email: user.email });
         return json({ topupId: data.id, checkoutUrl: `/wallet/pix/${data.id}`, provider, livemode: data.livemode });
       }
-      const { checkoutUrl } = await createCheckout({ topupId: data.id, amountCents: amount, method });
+      const { checkoutUrl } = await createCheckout({ topupId: data.id, amountCents: amount, method, origin: request.nextUrl.origin });
       return json({ topupId: data.id, checkoutUrl, provider, livemode: data.livemode });
     } catch (e) {
       // Show Mercado Pago's own reason (e.g. no Pix key on the account), not just "unavailable".

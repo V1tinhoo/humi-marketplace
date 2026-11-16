@@ -216,23 +216,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     beat();
     const timer = setInterval(beat, 30_000);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") beat();
-    };
-    // pagehide fires when the tab closes or the browser leaves the site (not on in-app navigation).
-    const onLeave = () => {
+
+    // "Offline now": a beacon survives the tab closing; keepalive fetch is the fallback.
+    const goOffline = () => {
       try {
-        navigator.sendBeacon("/api/presence/offline");
+        if (navigator.sendBeacon?.("/api/presence/offline")) return;
       } catch {
-        /* best effort: the 90 s window still applies */
+        /* fall through */
       }
+      fetch("/api/presence/offline", { method: "POST", keepalive: true, credentials: "same-origin" }).catch(() => {});
     };
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("pagehide", onLeave);
+    // Phones and tablets often never fire "pagehide" when the tab or app is closed — only
+    // "hidden". There, leaving the screen counts as leaving; coming back marks online again.
+    const touch = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") beat();
+      else if (touch) goOffline();
+    };
+    // Desktop: closing the tab / window or leaving the site (not in-app navigation).
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) beat(); // restored from the back/forward cache
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", goOffline);
+    window.addEventListener("beforeunload", goOffline);
+    window.addEventListener("pageshow", onPageShow);
     return () => {
       clearInterval(timer);
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("pagehide", onLeave);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", goOffline);
+      window.removeEventListener("beforeunload", goOffline);
+      window.removeEventListener("pageshow", onPageShow);
     };
   }, [supabase, isHost]);
 

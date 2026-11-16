@@ -32,9 +32,14 @@ async function mp<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 /** Hosted checkout for one pending top-up. `method` narrows the options shown (Pix or card). */
-export async function createCheckout(opts: { topupId: string; amountCents: number; method: "pix" | "card" }) {
-  const back = `${siteUrl()}/wallet?topup=${opts.topupId}`;
-  const isPublic = siteUrl().startsWith("https://");
+/**
+ * `origin` is the address the buyer is actually on (from the request), so the return link
+ * always points back to the same site — no dependency on NEXT_PUBLIC_SITE_URL being right.
+ */
+export async function createCheckout(opts: { topupId: string; amountCents: number; method: "pix" | "card"; origin?: string }) {
+  const base = (opts.origin || siteUrl()).replace(/\/$/, "");
+  const back = `${base}/wallet?topup=${opts.topupId}`;
+  const isPublic = base.startsWith("https://");
   const pref = await mp<{ id: string; init_point: string; sandbox_init_point?: string }>("/checkout/preferences", {
     method: "POST",
     body: JSON.stringify({
@@ -51,7 +56,7 @@ export async function createCheckout(opts: { topupId: string; amountCents: numbe
       back_urls: { success: back, pending: back, failure: back },
       // Mercado Pago rejects auto-return and webhooks for localhost: there the buyer clicks
       // "Voltar ao site" and the return-page sync confirms the payment.
-      ...(isPublic ? { auto_return: "approved", notification_url: `${siteUrl()}/api/payments/mercadopago/webhook` } : {}),
+      ...(isPublic ? { auto_return: "approved", notification_url: `${base}/api/payments/mercadopago/webhook` } : {}),
       // Unpaid checkouts expire after 1 day.
       expires: true,
       expiration_date_to: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),

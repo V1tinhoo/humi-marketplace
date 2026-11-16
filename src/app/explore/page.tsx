@@ -10,7 +10,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getT())("Explore hosts") };
 }
 // Public marketplace data is cached briefly and refreshed in the background.
-export const revalidate = 30; // keeps "Online now" close to real time
+// Always fresh: "Online now" must change as soon as a host leaves.
+export const dynamic = "force-dynamic";
 
 export default async function ExplorePage() {
   const { data: hosts, source, error } = await getHosts();
