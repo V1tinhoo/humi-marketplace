@@ -11,7 +11,7 @@ import { Logo } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import { LanguageSwitcher, useDict, useT } from "@/i18n/client";
+import { useDict, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
@@ -104,7 +104,6 @@ export function Navbar() {
         </ul>
 
         <div className="hidden items-center gap-2 md:flex">
-          <div className="mr-1 hidden lg:block"><LanguageSwitcher /></div>
           {!ready ? (
             <div className="h-10 w-40" />
           ) : user ? (
@@ -244,7 +243,6 @@ export function Navbar() {
             )}
           </ul>
           <div className="mt-auto flex flex-col gap-3">
-            <LanguageSwitcher className="self-center" />
             {user ? (
               <button onClick={handleSignOut} className="h-12 rounded-full bg-white font-semibold ring-1 ring-line">
                 {t.nav.logout}

@@ -13,7 +13,7 @@ export default async function AboutPage() {
         eyebrow="Sobre o HUMI"
         title="Um pouco mais humano. Um pouco menos sozinho."
         intro="O HUMI é um marketplace global de conversas reais — com pessoas reais, de todo lugar."
-        placeholder={false}
+       
       >
         <section>
           <h2>Por que estamos criando o HUMI</h2>
@@ -43,7 +43,7 @@ export default async function AboutPage() {
       eyebrow="About HUMI"
       title="A little more human. A little less alone."
       intro="HUMI is a global marketplace for real conversations — with real people, from everywhere."
-      placeholder={false}
+     
     >
       <section>
         <h2>Why we&apos;re building HUMI</h2>

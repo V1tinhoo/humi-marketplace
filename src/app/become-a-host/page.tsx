@@ -15,9 +15,9 @@ export async function generateMetadata(): Promise<Metadata> {
 const benefitIcons = [CalendarRange, Sparkles, CircleDollarSign, Globe2, HeartHandshake];
 
 const faqsFor = (tr: Translate) => [
-  { q: tr("Who can host?"), a: tr("Anyone 18 or older who enjoys meeting people and can hold a friendly, respectful conversation in at least one language. Hosts will need to pass identity and age verification before going live.") },
+  { q: tr("Who can host?"), a: tr("Anyone 18 or older who enjoys meeting people and can hold a friendly, respectful conversation in at least one language. HUMI may ask hosts to confirm their identity and age at any time.") },
   { q: tr("How much can I charge?"), a: tr("You choose your own price per minute within the platform limits, and you can change it any time.") },
-  { q: tr("When do I get paid?"), a: tr("Earnings from completed calls are paid out through our payment partner. Payouts aren't active during the beta preview.") },
+  { q: tr("When do I get paid?"), a: tr("Earnings from each call become available after the holding period shown in your dashboard. Then you request a withdrawal and receive it by Pix.") },
   { q: tr("What kind of sessions are allowed?"), a: tr("Friendly conversation, games, language practice and cultural exchange. HUMI isn't a dating service, and hosts may not offer therapy, medical advice or anything sexual.") },
 ];
 
@@ -76,7 +76,7 @@ export default async function BecomeHostPage() {
               {[
                 [tr("Create your host account"), tr("Tell us your first name and email.")],
                 [tr("Build your profile"), tr("Add your interests, languages, a photo, and your rate.")],
-                [tr("Get verified"), tr("Identity and age verification (planned for launch).")],
+                [tr("Go online"), tr("Switch on “Online now” and start receiving calls.")],
                 [tr("Start hosting"), tr("Open your calendar and meet people from around the world.")],
               ].map(([title, body], i) => (
                 <li key={title} className="flex gap-4">

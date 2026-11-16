@@ -22,6 +22,7 @@ import { describeInZone, viewerTimeZone } from "@/lib/time";
 import { ReportButton } from "@/components/safety/ReportButton";
 import { useCountry, useIntlLocale, useT } from "@/i18n/client";
 import { countryFromCode } from "@/data/places";
+import { InviteFriends } from "@/components/growth/InviteFriends";
 
 type BookingItem = Pick<BookingRow, "id" | "host_id" | "scheduled_at" | "ends_at" | "duration_minutes" | "call_type" | "status" | "total_price"> & {
   hostName: string;
@@ -115,6 +116,8 @@ export function LiveAccount() {
           <ButtonLink href="/become-a-host/apply" variant="secondary" className="sm:ml-auto">{tr("Become a host")}</ButtonLink>
         )}
       </div>
+
+      <InviteFriends className="mt-8" />
 
       <div className="mt-10 flex gap-1 border-b border-line" role="tablist">
         {(["bookings", "profile"] as const).map((t) => (

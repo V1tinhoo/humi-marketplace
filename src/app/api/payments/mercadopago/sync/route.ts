@@ -18,9 +18,9 @@ export async function POST(request: NextRequest) {
   const { topupId } = (await request.json().catch(() => ({}))) as { topupId?: string };
   if (!topupId) return fail(400, "Missing top-up.");
   // RLS: you can only sync your own top-up.
-  const { data: topup } = await supabase.from("wallet_topups").select("id, status, provider_payment_id").eq("id", topupId).maybeSingle();
+  const { data: topup } = await supabase.from("wallet_topups").select("id, status, provider_payment_id, amount_cents").eq("id", topupId).maybeSingle();
   if (!topup) return fail(404, "Top-up not found.");
-  if (topup.status !== "pending") return json({ status: topup.status });
+  if (topup.status !== "pending") return json({ status: topup.status, amountCents: topup.amount_cents });
 
   try {
     if (topup.provider_payment_id?.startsWith("ORD")) {
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       const order = await getOrder(topup.provider_payment_id);
       await reconcileOrder(order);
       const { data: after } = await supabase.from("wallet_topups").select("status").eq("id", topupId).maybeSingle();
-      return json({ status: after?.status ?? "pending", waiting: order.status === "action_required", rejected: false });
+      return json({ status: after?.status ?? "pending", waiting: order.status === "action_required", rejected: false, amountCents: topup.amount_cents });
     }
     const payments = await findPayments(topupId);
     // Approved first; other attempts (rejected, pending Pix) don't change anything.
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const { data: after } = await supabase.from("wallet_topups").select("status").eq("id", topupId).maybeSingle();
     const waiting = payments.some((p) => p.status === "pending" || p.status === "in_process");
     const rejected = !approved && payments.length > 0 && payments.every((p) => p.status === "rejected" || p.status === "cancelled");
-    return json({ status: after?.status ?? "pending", waiting, rejected });
+    return json({ status: after?.status ?? "pending", waiting, rejected, amountCents: topup.amount_cents });
   } catch (e) {
     return fail(502, "Couldn't check the payment right now.", e);
   }

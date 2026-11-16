@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Activity,
+  BarChart3,
   Banknote,
   Ban,
   Eye,
@@ -39,6 +40,7 @@ const TABS = [
   { id: "users", label: "Users", icon: Users },
   { id: "calls", label: "Calls", icon: PhoneCall },
   { id: "topups", label: "Top-ups", icon: WalletIcon },
+  { id: "sources", label: "Sign-up sources", icon: BarChart3 },
   { id: "settings", label: "Settings", icon: Settings },
   { id: "log", label: "Activity log", icon: Activity },
 ] as const;
@@ -94,6 +96,7 @@ export function AdminPanel() {
         {tab === "users" && <UsersTab notify={setToast} />}
         {tab === "calls" && <Calls />}
         {tab === "topups" && <Topups />}
+        {tab === "sources" && <Sources />}
         {tab === "settings" && <SettingsTab notify={setToast} />}
         {tab === "log" && <Log />}
       </div>
@@ -450,6 +453,54 @@ function Topups() {
   );
 }
 
+type Source = { source: string; campaign: string; signups: number; paying: number };
+function Sources() {
+  const tr = useT();
+  const [days, setDays] = useState(30);
+  return (
+    <Box
+      title={tr("Where new users came from")}
+      action={
+        <select value={days} onChange={(e) => setDays(Number(e.target.value))} className="h-9 rounded-lg bg-white px-2 text-sm ring-1 ring-line">
+          {[7, 30, 90, 365].map((d) => <option key={d} value={d}>{tr("Last {n} days", { n: d })}</option>)}
+        </select>
+      }
+    >
+      <SourcesTable key={days} days={days} />
+    </Box>
+  );
+}
+function SourcesTable({ days }: { days: number }) {
+  const tr = useT();
+  const { data, error } = useLoad<Source[]>(() => rpc("admin_signup_sources", { p_days: days }));
+  const total = (data ?? []).reduce((a, r) => a + Number(r.signups), 0);
+  return (
+    <>
+      {error ? <FormError message={error} /> : !data ? <Skeleton className="h-32" /> : data.length === 0 ? (
+        <p className="text-sm text-plum-soft">{tr("No sign-ups in this period.")}</p>
+      ) : (
+        <ul className="divide-y divide-line text-sm">
+          <li className="flex gap-3 pb-2 text-xs font-semibold text-plum-soft">
+            <span className="flex-1">{tr("Source")} · {tr("Campaign")}</span>
+            <span className="w-20 text-right">{tr("Sign-ups")}</span>
+            <span className="w-24 text-right">{tr("Paid a top-up")}</span>
+          </li>
+          {data.map((r) => (
+            <li key={r.source + r.campaign} className="flex gap-3 py-2">
+              <span className="min-w-0 flex-1 truncate font-semibold">
+                {r.source === "direct" ? tr("Direct / unknown") : r.source === "referral" ? tr("Referral") : r.source}
+                {r.campaign && <span className="font-normal text-plum-soft"> · {r.campaign}</span>}
+              </span>
+              <span className="w-20 text-right">{r.signups} <span className="text-xs text-plum-soft">({Math.round((Number(r.signups) / total) * 100)}%)</span></span>
+              <span className="w-24 text-right">{r.paying}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
 /* Friendly labels and units for platform settings. */
 const SETTINGS: Record<string, { label: string; unit: "brl" | "percent" | "seconds" | "days" | "toggle" }> = {
   commission_bps: { label: "HUMI commission", unit: "percent" },
@@ -463,6 +514,9 @@ const SETTINGS: Record<string, { label: string; unit: "brl" | "percent" | "secon
   call_grace_seconds: { label: "Connection drop tolerance", unit: "seconds" },
   call_ring_timeout_seconds: { label: "Ringing time limit", unit: "seconds" },
   allow_test_calls: { label: "Allow calls paid with test balance", unit: "toggle" },
+  first_topup_bonus_cents: { label: "First top-up bonus (0 = off)", unit: "brl" },
+  first_topup_bonus_min_cents: { label: "Minimum top-up for the bonus", unit: "brl" },
+  referral_bonus_cents: { label: "Referral credit per friend (0 = off)", unit: "brl" },
 };
 const toInput = (unit: string, v: number) => (unit === "brl" ? (v / 100).toFixed(2).replace(".", ",") : unit === "percent" ? String(v / 100).replace(".", ",") : String(v));
 const fromInput = (unit: string, s: string) => {

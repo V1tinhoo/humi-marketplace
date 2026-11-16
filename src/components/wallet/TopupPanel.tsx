@@ -9,6 +9,8 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { formatBRL, parseReaisToCents } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/client";
+import { track } from "@/lib/analytics";
+import { FirstTopupBonus } from "@/components/growth/InviteFriends";
 
 const PRESETS = [2000, 5000, 10000, 20000];
 
@@ -47,6 +49,7 @@ export function TopupPanel({ popup = false, onStarted }: { popup?: boolean; onSt
     if (!value) return setError(tr("Enter a valid amount, e.g. 35 or 35,50."));
     if (value < limits.min || value > limits.max) return setError(tr("Choose between {min} and {max}.", { min: formatBRL(limits.min), max: formatBRL(limits.max) }));
     setLoading(true);
+    track("begin_checkout", { value: value / 100, currency: "BRL", payment_type: method });
     // Open the window synchronously (inside the click) so pop-up blockers allow it.
     const win = popup ? window.open("about:blank", "humi-topup", "width=480,height=720") : null;
     const res = await fetch("/api/wallet/topups", {
@@ -67,6 +70,7 @@ export function TopupPanel({ popup = false, onStarted }: { popup?: boolean; onSt
 
   return (
     <div>
+      <FirstTopupBonus className="mb-4" />
       <p className="text-sm font-semibold">{tr("How much?")}</p>
       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {PRESETS.map((p) => (

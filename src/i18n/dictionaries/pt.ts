@@ -57,16 +57,16 @@ export const pt: Dictionary = {
   },
   trust: {
     title: "Conexões reais começam com confiança.",
-    subtitle: "Estamos construindo o HUMI com a segurança no centro. Veja o que faz parte do plano para o lançamento.",
+    subtitle: "A segurança está no centro do HUMI. Veja como protegemos cada conversa.",
     items: [
-      { title: "Perfis verificados", body: "Os hosts passarão por verificação de identidade e idade antes de aceitar sessões." },
-      { title: "Pagamentos seguros", body: "Os pagamentos são processados por um provedor certificado. O HUMI nunca guarda dados de cartão." },
+      { title: "Perfis reais", body: "Todo host tem um perfil com foto, interesses e avaliações de chamadas concluídas." },
+      { title: "Pagamentos seguros", body: "Os pagamentos são processados pelo Mercado Pago, um provedor certificado. O HUMI nunca guarda dados de cartão." },
       { title: "Avaliações honestas", body: "Só quem concluiu uma sessão pode deixar uma avaliação." },
       { title: "Denunciar e bloquear", body: "Denuncie ou bloqueie qualquer pessoa, a qualquer momento, em qualquer sessão ou perfil." },
       { title: "Diretrizes da comunidade", body: "Regras claras sobre respeito, consentimento e o que o HUMI é — e o que não é." },
       { title: "Privacidade em primeiro lugar", body: "Sem sobrenomes públicos, sem contatos compartilhados, e você controla o que compartilha." },
     ],
-    status: "Em desenvolvimento para o lançamento beta",
+    status: "Ativo",
   },
   finalCta: {
     title: "Tem alguém por aí que vale a conversa.",

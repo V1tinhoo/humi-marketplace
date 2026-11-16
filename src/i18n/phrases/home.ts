@@ -11,7 +11,7 @@ export const home: Record<string, string> = {
   "Close menu": "Fechar menu",
   "Open menu": "Abrir menu",
   "HUMI on {network} (coming soon)": "HUMI no {network} (em breve)",
-  "Beta preview · 18+ only": "Versão beta · Apenas 18+",
+  "18+ only": "Apenas maiores de 18 anos",
   "Beta preview": "Versão beta",
   "Profiles, bookings and payments on this site are demonstrations. No real sessions or charges.":
     "Perfis, agendamentos e pagamentos neste site são demonstrações. Nenhuma sessão ou cobrança real.",

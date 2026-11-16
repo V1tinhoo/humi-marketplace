@@ -13,6 +13,7 @@ import { FormError } from "@/components/ui/FormError";
 import { MailCheck } from "lucide-react";
 import type { UserRole } from "@/types";
 import { useT } from "@/i18n/client";
+import { track } from "@/lib/analytics";
 
 function SignupForm() {
   const router = useRouter();
@@ -43,6 +44,7 @@ function SignupForm() {
     setLoading(false);
     if (res.error) return setErrors({ form: res.error });
     if (res.needsConfirmation) return setSentTo(form.email.trim());
+    track("sign_up", { method: "email" });
     router.push(role === "host" ? "/become-a-host/apply" : "/explore");
     router.refresh();
   };

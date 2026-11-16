@@ -5,6 +5,7 @@ import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 import { notifyWalletChanged } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/client";
+import { trackOnce } from "@/lib/analytics";
 
 type State = "checking" | "waiting" | "approved" | "rejected" | "error" | null;
 
@@ -36,8 +37,9 @@ export function TopupReturn() {
       }).catch(() => null);
       if (stopped) return;
       if (!res || res.status === 404) return setState(null); // not a Mercado Pago top-up
-      const j = (await res.json().catch(() => ({}))) as { status?: string; rejected?: boolean };
+      const j = (await res.json().catch(() => ({}))) as { status?: string; rejected?: boolean; amountCents?: number };
       if (j.status === "approved") {
+        trackOnce(`purchase:${topupId}`, "purchase", { transaction_id: topupId, value: (j.amountCents ?? 0) / 100, currency: "BRL" });
         setState("approved");
         notifyWalletChanged();
         window.history.replaceState(null, "", "/wallet");

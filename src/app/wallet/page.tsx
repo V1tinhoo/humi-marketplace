@@ -6,6 +6,7 @@ import { ArrowDownLeft, ArrowUpRight, Clock, FlaskConical, Mic, Video, Wallet as
 import { RequireAuth } from "@/components/dashboard/RequireAuth";
 import { TopupPanel } from "@/components/wallet/TopupPanel";
 import { TopupReturn } from "@/components/wallet/TopupReturn";
+import { InviteFriends } from "@/components/growth/InviteFriends";
 import { Container, DemoNotice, Skeleton } from "@/components/ui/primitives";
 import { useAuth } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -206,6 +207,7 @@ function WalletView() {
             <h2 className="text-lg font-bold">{tr("Add balance")}</h2>
             <div className="mt-4"><TopupPanel /></div>
           </div>
+          <InviteFriends className="mt-4" />
           {anyTest && (
             <DemoNotice className="mt-4">
               <strong>{tr("Test mode.")}</strong> {tr("Payments are in test mode: top-ups add test balance and no real money is charged.")}

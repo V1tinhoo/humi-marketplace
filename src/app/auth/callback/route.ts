@@ -80,7 +80,13 @@ export async function GET(request: NextRequest) {
   // when they're empty. Never creates duplicates and never changes the role.
   const { data: profile } = await supabase.rpc("ensure_profile");
 
-  if (next) return NextResponse.redirect(new URL(next, origin));
   const home = profile?.role === "host" || profile?.role === "admin" ? "/dashboard" : "/account";
-  return NextResponse.redirect(new URL(home, origin));
+  const to = new URL(next ?? home, origin);
+  // Brand-new account (created in the last few minutes): lets the site count the sign-up.
+  const createdAt = (profile as { created_at?: string } | null)?.created_at;
+  if (createdAt && Date.now() - Date.parse(createdAt) < 10 * 60_000) {
+    to.searchParams.set("welcome", "1");
+    to.searchParams.set("method", code && !tokenHash ? "oauth" : "email");
+  }
+  return NextResponse.redirect(to);
 }

@@ -222,8 +222,8 @@ export const dashboard: Record<string, string> = {
   "Couldn't create your host profile.": "Não foi possível criar seu perfil de host.",
   "Your host profile is ready": "Seu perfil de host está pronto",
   "Application received (demo)": "Inscrição recebida (demo)",
-  "Thanks, {name}! Next: add a photo, your price and your weekly availability in the dashboard, then switch on “Listed in Explore”. Identity verification will be added before launch.":
-    "Obrigado, {name}! Agora: adicione uma foto, seu preço e sua disponibilidade semanal no painel, e depois ative “Aparecer em Explorar”. A verificação de identidade será adicionada antes do lançamento.",
+  "Thanks, {name}! Next: add a photo, your price and your weekly availability in the dashboard, then switch on “Listed in Explore”.":
+    "Obrigado, {name}! Agora: adicione uma foto, seu preço e sua disponibilidade semanal no painel, e depois ative “Aparecer em Explorar”.",
   "Thanks, {name}! In the live product, our team would review your profile and invite you to verify your identity. In this preview, nothing was submitted.":
     "Obrigado, {name}! Na versão final, nossa equipe analisaria seu perfil e convidaria você a verificar sua identidade. Nesta prévia, nada foi enviado.",
   "Back home": "Voltar ao início",

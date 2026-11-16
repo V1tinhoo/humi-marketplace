@@ -4,8 +4,8 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { BetaBar } from "@/components/layout/BetaBar";
 import { IncomingCalls } from "@/components/call/IncomingCalls";
+import { Analytics } from "@/components/analytics/Analytics";
 import { cookies, headers } from "next/headers";
 import { I18nProvider } from "@/i18n/client";
 import { COUNTRY_COOKIE } from "@/i18n";
@@ -50,11 +50,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           >
             {locale === "pt" ? "Pular para o conteúdo" : "Skip to content"}
           </a>
-          <BetaBar />
           <Navbar />
           <main id="main">{children}</main>
           <Footer />
           <IncomingCalls />
+          <Analytics />
         </AuthProvider>
         </I18nProvider>
       </body>

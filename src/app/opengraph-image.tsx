@@ -1,11 +1,13 @@
 import { ImageResponse } from "next/og";
+import { LOGO_MARK_DATA_URI, brandFonts } from "@/lib/brand-image";
 
-/** Share preview image (WhatsApp, Instagram, Telegram, X…): HUMI brand, in Portuguese. */
+/** Share preview image (WhatsApp, Instagram, Discord, Telegram, X…): HUMI brand, in Portuguese. */
 export const alt = "HUMI — Pessoas reais. Conexões reais.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OpengraphImage() {
+export default async function OpengraphImage() {
+  const fonts = await brandFonts();
   return new ImageResponse(
     (
       <div
@@ -18,24 +20,21 @@ export default function OpengraphImage() {
           padding: "72px 80px",
           background: "linear-gradient(135deg, #FFF9FC 0%, #FCEAF2 45%, #E5DDFB 100%)",
           color: "#493C62",
-          fontFamily: "sans-serif",
+          fontFamily: "Inter, sans-serif",
         }}
       >
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div style={{ display: "flex", position: "relative", width: 96, height: 64 }}>
-            <div style={{ position: "absolute", left: 0, top: 0, width: 64, height: 64, borderRadius: 64, background: "#B9A7EF" }} />
-            <div style={{ position: "absolute", left: 32, top: 0, width: 64, height: 64, borderRadius: 64, background: "#E9BFD3", opacity: 0.9 }} />
-            <div style={{ position: "absolute", left: 38, top: 8, width: 20, height: 48, borderRadius: 24, background: "#493C62" }} />
-          </div>
-          <div style={{ fontSize: 64, fontWeight: 800, letterSpacing: -2 }}>humi</div>
+        {/* Real logo: mark + "humi" wordmark, as on the site */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- rendered to PNG by next/og */}
+          <img src={LOGO_MARK_DATA_URI} width={100} height={70} alt="" />
+          <div style={{ fontSize: 64, fontWeight: 800, letterSpacing: -2.5, lineHeight: 1 }}>humi</div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <div style={{ fontSize: 76, fontWeight: 800, lineHeight: 1.05, letterSpacing: -2, maxWidth: 980 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+          <div style={{ fontSize: 74, fontWeight: 800, lineHeight: 1.04, letterSpacing: -2.5, maxWidth: 1000 }}>
             Pessoas reais. Conexões reais.
           </div>
-          <div style={{ fontSize: 34, lineHeight: 1.35, color: "#6B6082", maxWidth: 960 }}>
+          <div style={{ fontSize: 32, fontWeight: 500, lineHeight: 1.35, color: "#6B6082", maxWidth: 980 }}>
             Converse por vídeo ou áudio com pessoas do mundo todo: bater papo, praticar idiomas, jogar e trocar experiências.
           </div>
         </div>
@@ -49,6 +48,6 @@ export default function OpengraphImage() {
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts },
   );
 }

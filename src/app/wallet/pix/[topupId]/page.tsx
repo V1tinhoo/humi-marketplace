@@ -8,6 +8,7 @@ import { formatBRL } from "@/lib/money";
 import { notifyWalletChanged } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/client";
+import { trackOnce } from "@/lib/analytics";
 
 type PixInfo = {
   status: string;
@@ -33,7 +34,10 @@ export default function PixPage({ params }: { params: Promise<{ topupId: string 
     if (!res.ok) return setError(j.error ?? "Couldn't load this Pix.");
     setError(null);
     setInfo(j);
-    if (j.status === "approved") notifyWalletChanged();
+    if (j.status === "approved") {
+      notifyWalletChanged();
+      trackOnce(`purchase:${topupId}`, "purchase", { transaction_id: topupId, value: (j.amountCents ?? 0) / 100, currency: "BRL", payment_type: "pix" });
+    }
   }, [topupId]);
 
   const paid = info?.status === "approved";

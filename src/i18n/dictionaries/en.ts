@@ -58,16 +58,16 @@ export const en = {
   },
   trust: {
     title: "Real connections start with trust.",
-    subtitle: "We're building HUMI with safety at its core. Here's what's part of the plan for launch.",
+    subtitle: "Safety is at the core of HUMI. Here's how we protect every conversation.",
     items: [
-      { title: "Verified profiles", body: "Hosts will go through identity and age checks before they can accept sessions." },
-      { title: "Secure payments", body: "Payments will be handled by a certified payment provider. HUMI never stores card details." },
+      { title: "Real profiles", body: "Every host has a profile with photo, interests and ratings from completed calls." },
+      { title: "Secure payments", body: "Payments are processed by Mercado Pago, a certified payment provider. HUMI never stores card details." },
       { title: "Honest reviews", body: "Only people who completed a session can leave a review." },
       { title: "Report & block", body: "Report or block anyone, any time, from any session or profile." },
       { title: "Community guidelines", body: "Clear rules about respect, consent, and what HUMI is — and isn't." },
       { title: "Privacy first", body: "No public last names, no shared contact details, and you control what you share." },
     ],
-    status: "In development for beta launch",
+    status: "Live",
   },
   finalCta: {
     title: "Someone out there is worth talking to.",

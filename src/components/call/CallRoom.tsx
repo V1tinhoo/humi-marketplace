@@ -45,6 +45,7 @@ import { RateCall } from "@/components/call/RateCall";
 import { CallChatPanel, useCallChat } from "@/components/call/CallChat";
 import { useT } from "@/i18n/client";
 import { startRing } from "@/lib/ringtone";
+import { trackOnce } from "@/lib/analytics";
 import { formatBRL, formatDuration } from "@/lib/money";
 import { notifyWalletChanged } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
@@ -151,6 +152,10 @@ function MeetStage({ callId, conn, meter, endCall }: { callId: string; conn: Con
   const otherName = isCustomer ? call.host_name : call.customer_name || tr("Guest");
   const live = call.status === "connected";
   // The caller hears the "ringing" tone until the other person picks up.
+  // Marketing: a call that actually connected (customer side, once per call).
+  useEffect(() => {
+    if (isCustomer && live) trackOnce(`call:${callId}`, "call_started", { call_type: call.call_type });
+  }, [isCustomer, live, callId, call.call_type]);
   const callerWaiting = isCustomer && call.status === "ringing";
   useEffect(() => {
     if (!callerWaiting) return;

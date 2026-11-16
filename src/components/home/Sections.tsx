@@ -144,9 +144,6 @@ export async function TrustSection() {
                 <div key={item.title} className={cn("group rounded-[var(--radius-card)] p-6 transition-colors", i % 3 === 0 ? "bg-blush" : "bg-white ring-1 ring-line hover:ring-lavender")}>
                   <div className="flex items-center justify-between">
                     <Icon className="size-6 text-plum" strokeWidth={1.75} />
-                    <span className="rounded-full bg-cream px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-plum-soft ring-1 ring-line">
-                      {tr("Planned")}
-                    </span>
                   </div>
                   <h3 className="mt-5 text-lg font-bold">{item.title}</h3>
                   <p className="mt-1.5 text-sm leading-relaxed text-plum-soft">{item.body}</p>

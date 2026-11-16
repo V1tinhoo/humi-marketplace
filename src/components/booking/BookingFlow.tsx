@@ -389,9 +389,9 @@ export function BookingFlow({ host }: { host: Host }) {
                 />
               </div>
               <div className="mt-6 rounded-2xl bg-blush/70 p-5 text-sm">
-                <p className="font-semibold">{tr("Cancellation policy (draft)")}</p>
+                <p className="font-semibold">{tr("Cancellation policy")}</p>
                 <p className="mt-1 text-plum-soft">
-                  {tr("Free cancellation up to 12 hours before the session. Calls are only charged for the time you're connected. Final policy will be published before launch.")}{" "}
+                  {tr("Reserving is free and you can cancel any time before it starts. Calls are only charged for the time you're connected.")}{" "}
                   <Link href="/help#cancellation" className="font-semibold text-plum underline underline-offset-2">{tr("Learn more")}</Link>
                 </p>
               </div>

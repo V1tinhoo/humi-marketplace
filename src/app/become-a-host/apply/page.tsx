@@ -37,7 +37,7 @@ export default function HostApplyPage() {
     supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle().then(({ data: p }) => setAvatar(p?.avatar_url ?? null));
   }, [user]);
   const [step, setStep] = useState(0);
-  const [limits, setLimits] = useState({ min: 100, max: 500 });
+  const [limits, setLimits] = useState({ min: 30, max: 500 });
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     supabase
@@ -127,7 +127,7 @@ export default function HostApplyPage() {
         <h1 className="mt-8 text-3xl font-extrabold tracking-tight sm:text-4xl">{mode === "supabase" ? tr("Your host profile is ready") : tr("Application received (demo)")}</h1>
         <p className="mt-3 text-plum-soft">
           {mode === "supabase"
-            ? tr("Thanks, {name}! Next: add a photo, your price and your weekly availability in the dashboard, then switch on “Listed in Explore”. Identity verification will be added before launch.", { name: data.name.split(" ")[0] })
+            ? tr("Thanks, {name}! Next: add a photo, your price and your weekly availability in the dashboard, then switch on “Listed in Explore”.", { name: data.name.split(" ")[0] })
             : tr("Thanks, {name}! In the live product, our team would review your profile and invite you to verify your identity. In this preview, nothing was submitted.", { name: data.name.split(" ")[0] })}
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/primitives";
 import { getDict, getT } from "@/i18n/server";
-import { LanguageSwitcher } from "@/i18n/client";
+import { CookieSettingsLink } from "@/components/analytics/Analytics";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
 const columnsFor = (t: Dictionary) => [
@@ -99,9 +99,9 @@ export async function Footer() {
 
         <div className="mt-14 flex flex-col gap-4 border-t border-line pt-8 text-xs leading-relaxed text-plum-soft lg:flex-row lg:items-start lg:justify-between">
           <p className="max-w-3xl">{t.footer.disclaimer}</p>
-          <div className="flex shrink-0 flex-col items-start gap-3 lg:items-end">
-            <LanguageSwitcher />
-            <p>© {new Date().getFullYear()} HUMI · {tr("Beta preview · 18+ only")}</p>
+          <div className="flex shrink-0 flex-col items-start gap-2 lg:items-end">
+            <CookieSettingsLink label={tr("Cookie settings")} />
+            <p>© {new Date().getFullYear()} HUMI · {tr("18+ only")}</p>
           </div>
         </div>
       </Container>

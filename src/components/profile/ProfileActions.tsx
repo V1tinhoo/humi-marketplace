@@ -60,7 +60,7 @@ export function ProfileActions({ name, hostId, live = false }: { name: string; h
             </button>
             <h2 id="report-title" className="text-lg font-bold">{tr("Report or block {name}", { name })}</h2>
             <p className="mt-2 text-sm text-plum-soft">
-              {tr("In the live product, reports go to our trust & safety team and blocking hides you from each other immediately. In this beta preview, these actions are not sent anywhere.")}
+              {tr("This is a sample profile used to show how HUMI works, so these actions are not sent anywhere.")}
             </p>
             <div className="mt-5 grid gap-2">
               <button onClick={() => { setReportOpen(false); setToast(tr("Report recorded (demo only)")); }} className="flex items-center gap-3 rounded-xl bg-cream p-3 text-left text-sm font-semibold ring-1 ring-line hover:ring-lavender">

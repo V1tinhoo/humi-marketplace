@@ -108,8 +108,8 @@ export const hosts: Record<string, string> = {
   "Report or block": "Denunciar ou bloquear",
   Close: "Fechar",
   "Report or block {name}": "Denunciar ou bloquear {name}",
-  "In the live product, reports go to our trust & safety team and blocking hides you from each other immediately. In this beta preview, these actions are not sent anywhere.":
-    "Na versão final, as denúncias vão para nossa equipe de segurança e o bloqueio esconde vocês um do outro na hora. Nesta versão beta, essas ações não são enviadas.",
+  "This is a sample profile used to show how HUMI works, so these actions are not sent anywhere.":
+    "Este é um perfil de exemplo, usado para mostrar como o HUMI funciona, então essas ações não são enviadas.",
   "Report recorded (demo only)": "Denúncia registrada (só demonstração)",
   "Report this profile": "Denunciar este perfil",
   "{name} blocked (demo only)": "{name} bloqueado (só demonstração)",

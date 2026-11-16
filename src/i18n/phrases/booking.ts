@@ -51,9 +51,9 @@ export const booking: Record<string, string> = {
   Edit: "Editar",
   "{n} minutes": "{n} minutos",
   "Date & time": "Data e horário",
-  "Cancellation policy (draft)": "Política de cancelamento (rascunho)",
-  "Free cancellation up to 12 hours before the session. Calls are only charged for the time you're connected. Final policy will be published before launch.":
-    "Cancelamento grátis até 12 horas antes da sessão. As chamadas só são cobradas pelo tempo conectado. A política final será publicada antes do lançamento.",
+  "Cancellation policy": "Política de cancelamento",
+  "Reserving is free and you can cancel any time before it starts. Calls are only charged for the time you're connected.":
+    "Reservar é grátis e você pode cancelar a qualquer momento antes do horário. As chamadas só são cobradas pelo tempo conectado.",
   "Learn more": "Saiba mais",
   "I'm 18 or older and agree to the": "Tenho 18 anos ou mais e concordo com as",
   "I understand HUMI sessions are social conversations — not therapy, dating, or professional advice.":
