@@ -20,6 +20,8 @@ import type { BookingRow, ProfileRow } from "@/types/database";
 import { ErrorPanel, StatusBadge, parseList } from "./shared";
 import { describeInZone, viewerTimeZone } from "@/lib/time";
 import { ReportButton } from "@/components/safety/ReportButton";
+import { useCallRules } from "@/components/safety/CallRules";
+import { BlockedPeople } from "@/components/safety/BlockedPeople";
 import { useCountry, useIntlLocale, useT } from "@/i18n/client";
 import { countryFromCode } from "@/data/places";
 import { InviteFriends } from "@/components/growth/InviteFriends";
@@ -118,6 +120,7 @@ export function LiveAccount() {
       </div>
 
       <InviteFriends className="mt-8" />
+      <BlockedPeople className="mt-4" />
 
       <div className="mt-10 flex gap-1 border-b border-line" role="tablist">
         {(["bookings", "profile"] as const).map((t) => (
@@ -188,7 +191,9 @@ function JoinCallButton({ booking }: { booking: BookingItem }) {
   const tr = useT();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const { ensureRules, rulesDialog } = useCallRules();
   const join = async () => {
+    if (!(await ensureRules())) return;
     setBusy(true);
     setErr(null);
     const res = await fetch("/api/calls", {
@@ -203,6 +208,7 @@ function JoinCallButton({ booking }: { booking: BookingItem }) {
   };
   return (
     <span className="flex flex-col items-end gap-1">
+      {rulesDialog}
       <button onClick={join} disabled={busy} className="inline-flex items-center gap-1 rounded-full bg-online px-3 py-1 text-xs font-semibold text-white disabled:opacity-60">
         <Phone className="size-3" /> {busy ? tr("Starting…") : tr("Join call")}
       </button>

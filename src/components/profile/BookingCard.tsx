@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { useWalletBalance } from "@/lib/wallet";
 import { formatBRL, formatDuration, hostPriceCents } from "@/lib/money";
 import { useT } from "@/i18n/client";
+import { useCallRules } from "@/components/safety/CallRules";
 
 /**
  * Host profile sidebar: per-minute prices, the visitor's balance, "Call now" (when the host
@@ -31,9 +32,11 @@ export function BookingCard({ host }: { host: Host }) {
   const talkSeconds = balance != null && price > 0 ? Math.floor((balance / price) * 60) : null;
   const scheduleHref = `/book/${host.id}?format=${format}&duration=30`;
 
+  const { ensureRules, rulesDialog } = useCallRules();
   const callNow = async () => {
     setError(null);
     if (!user) return router.push(`/login?next=${encodeURIComponent(`/hosts/${host.id}`)}`);
+    if (!(await ensureRules())) return;
     setStarting(true);
     const res = await fetch("/api/calls", {
       method: "POST",
@@ -48,6 +51,7 @@ export function BookingCard({ host }: { host: Host }) {
 
   return (
     <>
+      {rulesDialog}
       <div className="rounded-[var(--radius-card)] bg-white p-6 shadow-soft ring-1 ring-line">
         <p>
           <span className="text-3xl font-extrabold tracking-tight">{formatBRL(price)}</span>

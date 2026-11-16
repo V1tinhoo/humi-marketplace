@@ -29,6 +29,7 @@ import {
   MicOff,
   Minimize,
   MonitorUp,
+  Ban,
   MoreVertical,
   PhoneOff,
   Plus,
@@ -40,6 +41,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/primitives";
 import { TopupPanel } from "@/components/wallet/TopupPanel";
 import { ReportButton } from "@/components/safety/ReportButton";
+import { blockTarget } from "@/components/safety/BlockButton";
 import { ReportDialog } from "@/components/safety/ReportDialog";
 import { RateCall } from "@/components/call/RateCall";
 import { CallChatPanel, useCallChat } from "@/components/call/CallChat";
@@ -275,6 +277,15 @@ function MeetStage({ callId, conn, meter, endCall }: { callId: string; conn: Con
     room.disconnect();
   };
 
+  // Leave right away and make sure this person can't call / book / see you again.
+  const endAndBlock = async () => {
+    setMoreOpen(false);
+    if (!confirm(tr("End the call and block {name}? You won't be able to call, book or see each other on HUMI.", { name: otherName }))) return;
+    const err = await blockTarget({ callId });
+    await hangUp();
+    if (err) notify(err);
+  };
+
   const toggleCamera = () => {
     if (!isVideoCall) return notify("This is an audio call, so the camera stays off.");
     if (cameras.length === 0) return notify("No camera found. Connect a camera and try again.");
@@ -446,6 +457,9 @@ function MeetStage({ callId, conn, meter, endCall }: { callId: string; conn: Con
                 )}
                 <MenuItem icon={<Flag className="size-4" />} danger onClick={() => { setReportOpen(true); setMoreOpen(false); }}>
                   {tr("Report {name}", { name: otherName })}
+                </MenuItem>
+                <MenuItem icon={<Ban className="size-4" />} danger onClick={endAndBlock}>
+                  {tr("End call and block")}
                 </MenuItem>
               </div>
             </>

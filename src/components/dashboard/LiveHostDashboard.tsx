@@ -29,6 +29,7 @@ import { DemoNotice, Skeleton } from "@/components/ui/primitives";
 import { FormError } from "@/components/ui/FormError";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { ReportButton } from "@/components/safety/ReportButton";
+import { BlockButton } from "@/components/safety/BlockButton";
 import { CountrySelect, RegionSelect, TagPicker } from "@/components/ui/ProfileFields";
 import { INTEREST_SUGGESTIONS } from "@/data/places";
 import { Field } from "@/components/auth/AuthShell";
@@ -367,7 +368,12 @@ function BookingRow({ b, tz, compact, actions }: { b: MyHostBookingRow; tz: stri
             <Icon className="size-3.5 shrink-0" /> {b.duration_minutes} min · {when} ·{" "}
             {Number(b.host_earnings) > 0 ? tr("{amount} to you", { amount: formatPrice(Number(b.host_earnings), { cents: true }) }) : tr("per-minute call")}
           </p>
-          {!compact && <ReportButton target={{ bookingId: b.id }} name={b.customer_name || "this guest"} className="mt-1" />}
+          {!compact && (
+            <span className="mt-1 flex gap-3">
+              <ReportButton target={{ bookingId: b.id }} name={b.customer_name || "this guest"} />
+              <BlockButton target={{ bookingId: b.id }} name={b.customer_name || "this guest"} />
+            </span>
+          )}
         </div>
         {!compact && <StatusBadge status={b.status} className="hidden sm:inline" />}
       </div>
@@ -853,7 +859,7 @@ function Finance({ hostId }: { hostId: string }) {
                     <td className="px-3 py-3 text-plum-soft">{new Date(c.created_at).toLocaleDateString(loc, { month: "short", day: "numeric" })}</td>
                     <td className="px-3 py-3 text-plum-soft">{c.status === "failed" ? "not connected" : formatDuration(c.billed_seconds)}</td>
                     <td className="px-5 py-3 text-right font-semibold sm:px-6">{formatBRL(c.host_earnings_cents ?? 0)}</td>
-                    <td className="px-3 py-3 text-right"><ReportButton target={{ callId: c.id }} name={c.customer_name || "this guest"} /></td>
+                    <td className="px-3 py-3 text-right"><span className="inline-flex gap-3"><ReportButton target={{ callId: c.id }} name={c.customer_name || "this guest"} /><BlockButton target={{ callId: c.id }} name={c.customer_name || "this guest"} /></span></td>
                   </tr>
                 ))}
               </tbody>

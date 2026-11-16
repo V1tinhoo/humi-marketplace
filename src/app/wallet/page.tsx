@@ -13,6 +13,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useWalletBalance } from "@/lib/wallet";
 import { formatBRL, formatDuration } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { BlockButton } from "@/components/safety/BlockButton";
 import { ReportButton } from "@/components/safety/ReportButton";
 import type { MyCallRow, TopupStatus, WalletTopupRow, WalletTransactionRow } from "@/types/database";
 import { useIntlLocale, useT } from "@/i18n/client";
@@ -47,7 +48,14 @@ function WalletView() {
   const load = useCallback(async () => {
     if (!supabase || !user) return;
     const [a, b, c] = await Promise.all([
-      supabase.from("wallet_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
+      // One row per call (see migration wallet_activity). Falls back to raw rows until it is applied.
+      supabase
+        .from("my_wallet_activity" as "wallet_transactions") // same columns as the ledger
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(100)
+        .then(async (r) => (r.error ? await supabase.from("wallet_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1000) : r)),
       supabase.from("wallet_topups").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50),
       supabase.from("my_calls").select("*").eq("i_am_host", false).order("created_at", { ascending: false }).limit(50),
     ]);
@@ -100,9 +108,9 @@ function WalletView() {
           <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-gradient-to-br from-lavender via-lilac to-blush p-6 sm:p-8">
             <div aria-hidden className="absolute -right-10 -top-10 size-40 rounded-full border-[24px] border-white/30" />
             <p className="flex items-center gap-2 text-sm font-semibold text-plum"><WalletIcon className="size-4" /> {tr("Available balance")}</p>
-            <p className="mt-2 text-4xl font-extrabold tracking-tight text-plum-deep sm:text-5xl">
+            <div className="mt-2 text-4xl font-extrabold tracking-tight text-plum-deep sm:text-5xl">
               {realBalance === null ? <Skeleton className="h-12 w-48" /> : formatBRL(realBalance)}
-            </p>
+            </div>
             {!!testBalance && (
               <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-plum">
                 <FlaskConical className="size-3.5" /> {tr("+ {amount} test balance — not real money", { amount: formatBRL(testBalance) })}
@@ -168,7 +176,10 @@ function WalletView() {
                         </div>
                         <div className="text-right">
                           <p className="font-bold">{formatBRL(c.charged_cents)}</p>
-                          <ReportButton target={{ callId: c.id }} name={c.host_name} />
+                          <span className="flex justify-end gap-3">
+                            <ReportButton target={{ callId: c.id }} name={c.host_name} />
+                            <BlockButton target={{ callId: c.id }} name={c.host_name} />
+                          </span>
                         </div>
                       </li>
                     );

@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import { Ban, Flag, Heart, Share2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReportButton } from "@/components/safety/ReportButton";
+import { BlockButton } from "@/components/safety/BlockButton";
+import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/client";
 
 export function ProfileActions({ name, hostId, live = false }: { name: string; hostId?: string; live?: boolean }) {
   const tr = useT();
+  const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
@@ -37,7 +40,10 @@ export function ProfileActions({ name, hostId, live = false }: { name: string; h
           <Share2 className="size-4" />
         </IconBtn>
         {live && hostId ? (
-          <ReportButton variant="icon" target={{ hostId }} name={name} />
+          <>
+            <ReportButton variant="icon" target={{ hostId }} name={name} />
+            <BlockButton variant="icon" target={{ hostId }} name={name} onBlocked={() => router.push("/explore")} />
+          </>
         ) : (
           <IconBtn label={tr("Report or block")} onClick={() => setReportOpen(true)}>
             <Flag className="size-4" />

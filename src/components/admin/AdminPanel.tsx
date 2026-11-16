@@ -502,7 +502,7 @@ function SourcesTable({ days }: { days: number }) {
 }
 
 /* Friendly labels and units for platform settings. */
-const SETTINGS: Record<string, { label: string; unit: "brl" | "percent" | "seconds" | "days" | "toggle" }> = {
+const SETTINGS: Record<string, { label: string; unit: "brl" | "percent" | "seconds" | "days" | "toggle" | "count" }> = {
   commission_bps: { label: "HUMI commission", unit: "percent" },
   price_min_cents_per_minute: { label: "Minimum price per minute", unit: "brl" },
   price_max_cents_per_minute: { label: "Maximum price per minute", unit: "brl" },
@@ -517,6 +517,8 @@ const SETTINGS: Record<string, { label: string; unit: "brl" | "percent" | "secon
   first_topup_bonus_cents: { label: "First top-up bonus (0 = off)", unit: "brl" },
   first_topup_bonus_min_cents: { label: "Minimum top-up for the bonus", unit: "brl" },
   referral_bonus_cents: { label: "Referral credit per friend (0 = off)", unit: "brl" },
+  auto_suspend_reports: { label: "Reports from different people (7 days) that suspend an account (0 = off)", unit: "count" },
+  declined_call_limit: { label: "Declined calls in a row before a 24 h pause (0 = off)", unit: "count" },
 };
 const toInput = (unit: string, v: number) => (unit === "brl" ? (v / 100).toFixed(2).replace(".", ",") : unit === "percent" ? String(v / 100).replace(".", ",") : String(v));
 const fromInput = (unit: string, s: string) => {
@@ -594,7 +596,7 @@ function Log() {
             <li key={a.id} className="flex flex-wrap gap-x-3 py-2">
               <span className="w-32 text-plum-soft">{new Date(a.created_at).toLocaleString(loc, { dateStyle: "short", timeStyle: "short" })}</span>
               <span className="font-semibold">{a.admin_name ?? "SQL"}</span>
-              <span>{a.action}</span>
+              <span>{a.action === "auto_suspend" ? tr("Automatic suspension (reports)") : a.action}</span>
               <span className="min-w-0 flex-1 truncate text-plum-soft">{Object.keys(a.details ?? {}).length ? JSON.stringify(a.details) : ""}</span>
             </li>
           ))}

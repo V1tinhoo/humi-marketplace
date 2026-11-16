@@ -28,6 +28,8 @@ const tests = [
   ["admin.test.mjs", "20261116120000_admin.sql"],
   ["price-min.test.mjs", "20261116130000_price_min_30.sql"],
   ["growth.test.mjs", "20261116140000_growth.sql"],
+  ["activity.test.mjs", "20261116150000_wallet_activity.sql"],
+  ["safety.test.mjs", "20261116160000_safety.sql"],
 ];
 
 let failed = 0;

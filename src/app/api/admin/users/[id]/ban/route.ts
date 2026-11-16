@@ -29,6 +29,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     };
   };
   if (ban) await untyped.from("host_profiles").update({ is_published: false, is_available: false }).eq("user_id", id);
+  // Suspension flag: blocks calls/bookings immediately; unblocking also lifts an automatic suspension.
+  await untyped.from("profiles").update(ban ? { suspended_at: new Date().toISOString(), suspended_reason: "admin" } : { suspended_at: null, suspended_reason: null }).eq("id", id);
   await untyped.from("admin_actions").insert({ admin_id: user.id, action: ban ? "ban_user" : "unban_user", target: id, details: {} });
   return json({ ok: true });
 }

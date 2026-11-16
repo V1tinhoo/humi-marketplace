@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { ReportReason } from "@/types/database";
+import { blockTarget } from "./BlockButton";
 import { useT } from "@/i18n/client";
 
 export type ReportTarget = { callId: string } | { bookingId: string } | { hostId: string };
@@ -47,6 +48,8 @@ export function ReportDialog({
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState("");
   const [endCall, setEndCall] = useState(true);
+  const [alsoBlock, setAlsoBlock] = useState(true);
+  const [blocked, setBlocked] = useState(false);
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -86,6 +89,7 @@ export function ReportDialog({
       setState("idle");
       return setError(err.code === "P0001" || err.code === "42501" ? err.message : "Couldn't send the report. Please try again.");
     }
+    if (alsoBlock) setBlocked((await blockTarget(target)) === null);
     setState("done");
     onReported?.(offerEndCall ? endCall : false);
   };
@@ -119,6 +123,7 @@ export function ReportDialog({
             <p className="mt-1 text-sm text-plum-soft">
               {tr("Our team will review this report. {name} won't be told who reported them. If you're in danger, contact local emergency services.", { name })}
             </p>
+            {blocked && <p className="mt-2 text-sm font-semibold">{tr("{name} is blocked: you won't see or hear from each other on HUMI.", { name })}</p>}
             <Button className="mt-5" onClick={onClose}>{tr("Close")}</Button>
           </div>
         ) : (
@@ -153,6 +158,11 @@ export function ReportDialog({
                 placeholder={tr("Anything that helps us understand")}
                 className="mt-1.5 w-full rounded-xl bg-cream p-3 text-sm ring-1 ring-line outline-none focus:ring-2 focus:ring-lavender"
               />
+
+              <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-sm">
+                <input type="checkbox" checked={alsoBlock} onChange={(e) => setAlsoBlock(e.target.checked)} className="size-4 accent-[#493C62]" />
+                {tr("Also block {name}", { name })}
+              </label>
 
               {offerEndCall && (
                 <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-sm">

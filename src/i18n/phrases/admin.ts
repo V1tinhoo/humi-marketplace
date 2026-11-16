@@ -121,4 +121,7 @@ export const admin: Record<string, string> = {
   "First top-up bonus (0 = off)": "Bônus da primeira recarga (0 = desligado)",
   "Minimum top-up for the bonus": "Recarga mínima para o bônus",
   "Referral credit per friend (0 = off)": "Crédito por amigo indicado (0 = desligado)",
+  "Automatic suspension (reports)": "Suspensão automática (denúncias)",
+  "Reports from different people (7 days) that suspend an account (0 = off)": "Denúncias de pessoas diferentes (7 dias) que suspendem uma conta (0 = desligado)",
+  "Declined calls in a row before a 24 h pause (0 = off)": "Chamadas recusadas seguidas antes de uma pausa de 24 h (0 = desligado)",
 };
