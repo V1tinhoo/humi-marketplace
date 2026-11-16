@@ -30,6 +30,7 @@ const tests = [
   ["growth.test.mjs", "20261116140000_growth.sql"],
   ["activity.test.mjs", "20261116150000_wallet_activity.sql"],
   ["safety.test.mjs", "20261116160000_safety.sql"],
+  ["fair-ratings.test.mjs", "20261116170000_fair_ratings.sql"],
 ];
 
 let failed = 0;

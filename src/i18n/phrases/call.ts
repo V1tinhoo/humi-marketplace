@@ -117,4 +117,6 @@ export const call: Record<string, string> = {
   "Something wrong during a call? Use Report or Block in the ⋮ menu.": "Algo errado durante a chamada? Use Denunciar ou Bloquear no menu ⋮.",
   "I agree, start the call": "Concordo, iniciar a chamada",
   "Cancel": "Cancelar",
+  "Calls shorter than 1 minute can't be rated.": "Chamadas com menos de 1 minuto não podem ser avaliadas.",
+  "Only calls of at least 1 minute can be rated.": "Só chamadas de pelo menos 1 minuto podem ser avaliadas.",
 };

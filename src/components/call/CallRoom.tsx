@@ -617,8 +617,12 @@ function CallSummary({ call, isCustomer, callId }: { call: MyCallRow; isCustomer
         <Row label={tr("Duration")} value={formatDuration(call.billed_seconds)} />
         {isCustomer ? <Row label={tr("Total")} value={formatBRL(call.charged_cents)} strong /> : <Row label={tr("You earned")} value={formatBRL(call.host_earnings_cents ?? 0)} strong />}
       </div>
-      {call.billed_seconds > 0 && call.status === "ended" && (
+      {/* Only calls of at least 1 minute can be rated (checked again by the database). */}
+      {call.billed_seconds >= 60 && call.status === "ended" && (
         <RateCall callId={callId} isCustomer={isCustomer} name={isCustomer ? call.host_name : call.customer_name || tr("your guest")} />
+      )}
+      {call.billed_seconds > 0 && call.billed_seconds < 60 && call.status === "ended" && (
+        <p className="mt-6 text-sm text-plum-soft">{tr("Calls shorter than 1 minute can't be rated.")}</p>
       )}
       <p className="mt-4 text-sm text-plum-soft">
         {tr("Something wrong?")} <ReportButton target={{ callId }} name={isCustomer ? call.host_name : call.customer_name || tr("this guest")} className="text-sm" />
