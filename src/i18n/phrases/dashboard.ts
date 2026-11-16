@@ -244,4 +244,7 @@ export const dashboard: Record<string, string> = {
     "Vou seguir as diretrizes da comunidade: sem namoro, sem terapia ou aconselhamento profissional, sem conteúdo sexual e sem levar sessões para fora do HUMI.",
   "This application isn't sent anywhere in the beta preview.": "Esta inscrição não é enviada para lugar nenhum na versão beta.",
   "Submit application": "Enviar inscrição",
+  "Your price per minute": "Seu preço por minuto",
+  "A 30-minute call at this price: {total}. Guests pay per second, only while you're both connected.": "Uma chamada de 30 minutos nesse preço: {total}. Os convidados pagam por segundo, só enquanto vocês dois estão conectados.",
+  "You can change your price, and add a video price, any time in the dashboard.": "Você pode mudar seu preço, e adicionar um preço para vídeo, quando quiser no painel.",
 };

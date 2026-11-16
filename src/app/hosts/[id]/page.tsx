@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, BadgeCheck, CalendarDays, Globe2, Info, Languages, MapPin, Mic, ShieldQuestion, Star, Video } from "lucide-react";
-import { hosts as sampleHosts } from "@/data/hosts";
 import { getHostById, getHostReviews, getHosts } from "@/lib/data/hosts";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { tzLabel } from "@/lib/time";
 import { categoryById } from "@/data/categories";
 import { categoryVisuals } from "@/components/home/CategoryCard";
@@ -19,12 +17,8 @@ import { getLocale, getT } from "@/i18n/server";
 import { intlLocale } from "@/i18n";
 import { countryLabel } from "@/data/places";
 
-export const revalidate = 30; // keeps "Online now" close to real time
-
-export function generateStaticParams() {
-  // Live hosts are rendered on demand (and cached); sample hosts are prebuilt.
-  return isSupabaseConfigured ? [] : sampleHosts.map((h) => ({ id: h.id }));
-}
+// Rendered per request: the page follows the visitor's language (cookie) and live presence.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { data: host } = await getHostById((await params).id);

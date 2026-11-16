@@ -9,7 +9,8 @@ import { Container, DemoNotice } from "@/components/ui/primitives";
 import { categories } from "@/data/categories";
 import { categoryVisuals } from "@/components/home/CategoryCard";
 import { useAuth } from "@/lib/auth";
-import { PLATFORM_LIMITS, cn, formatPrice, sleep } from "@/lib/utils";
+import { cn, sleep } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import type { CategoryId } from "@/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { viewerTimeZone } from "@/lib/time";
@@ -36,6 +37,18 @@ export default function HostApplyPage() {
     supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle().then(({ data: p }) => setAvatar(p?.avatar_url ?? null));
   }, [user]);
   const [step, setStep] = useState(0);
+  const [limits, setLimits] = useState({ min: 50, max: 2000 });
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    supabase
+      ?.from("platform_settings")
+      .select("key, value")
+      .in("key", ["price_min_cents_per_minute", "price_max_cents_per_minute"])
+      .then(({ data: rows }) => {
+        const m = Object.fromEntries((rows ?? []).map((r) => [r.key, Number(r.value)]));
+        if (m.price_min_cents_per_minute && m.price_max_cents_per_minute) setLimits({ min: m.price_min_cents_per_minute, max: m.price_max_cents_per_minute });
+      });
+  }, []);
   const [data, setData] = useState({
     name: user?.name ?? "",
     // Pre-filled with the country detected from the visitor's location (they can change it).
@@ -45,7 +58,7 @@ export default function HostApplyPage() {
     languages: [] as string[],
     interests: [] as string[],
     cats: [] as CategoryId[],
-    rate: 5,
+    rate: 100, // price per minute in cents (R$ 1,00)
     adult: false,
     rules: false,
   });
@@ -88,7 +101,6 @@ export default function HostApplyPage() {
           display_name: firstName,
           description: data.bio.trim(),
           categories: data.cats,
-          session_price: data.rate,
           // Availability is entered in the host's local time, so the profile needs their real zone (not the UTC default).
           timezone: viewerTimeZone(),
         })
@@ -100,6 +112,10 @@ export default function HostApplyPage() {
     ]);
     const err = a.error ?? b.error;
     if (err) return fail(err.message);
+    // The real price (per minute) lives in host_pricing and is validated by the server.
+    const price = Math.min(limits.max, Math.max(limits.min, data.rate));
+    const { error: priceErr } = await supabase.rpc("set_host_pricing", { p_audio_cents: price, p_video_cents: null });
+    if (priceErr) return fail(priceErr.message);
     await refreshProfile();
     setState("done");
   };
@@ -203,15 +219,16 @@ export default function HostApplyPage() {
         {step === 2 && (
           <div>
             <div className="flex items-baseline justify-between">
-              <label htmlFor="hrate" className="font-semibold">{tr("Your rate per 30 minutes")}</label>
-              <span className="text-4xl font-extrabold">{formatPrice(data.rate)}</span>
+              <label htmlFor="hrate" className="font-semibold">{tr("Your price per minute")}</label>
+              <span className="text-4xl font-extrabold">{formatBRL(data.rate)}<span className="text-base font-semibold text-plum-soft">/min</span></span>
             </div>
-            <input id="hrate" type="range" min={PLATFORM_LIMITS.minPer30} max={PLATFORM_LIMITS.maxPer30} value={data.rate} onChange={(e) => setData({ ...data, rate: Number(e.target.value) })} className="mt-5 w-full accent-[#493C62]" />
+            <input id="hrate" type="range" min={limits.min} max={limits.max} step={10} value={Math.min(limits.max, Math.max(limits.min, data.rate))} onChange={(e) => setData({ ...data, rate: Number(e.target.value) })} className="mt-5 w-full accent-[#493C62]" />
             <div className="mt-1 flex justify-between text-xs text-plum-soft">
-              <span>{formatPrice(PLATFORM_LIMITS.minPer30)}</span>
-              <span>{tr("{price} limit", { price: formatPrice(PLATFORM_LIMITS.maxPer30) })}</span>
+              <span>{formatBRL(limits.min)}/min</span>
+              <span>{tr("{price} limit", { price: `${formatBRL(limits.max)}/min` })}</span>
             </div>
-            <p className="mt-6 rounded-2xl bg-blush p-4 text-sm">{tr("You'll set your price per minute in the dashboard, and you can change it any time.")}</p>
+            <p className="mt-4 text-sm text-plum-soft">{tr("A 30-minute call at this price: {total}. Guests pay per second, only while you're both connected.", { total: formatBRL(data.rate * 30) })}</p>
+            <p className="mt-6 rounded-2xl bg-blush p-4 text-sm">{tr("You can change your price, and add a video price, any time in the dashboard.")}</p>
           </div>
         )}
 
@@ -221,6 +238,7 @@ export default function HostApplyPage() {
               <p><span className="text-plum-soft">{tr("Name")}:</span> <strong>{data.name}</strong> · {countryLabel(data.country, locale)}</p>
               <p className="mt-1"><span className="text-plum-soft">{tr("Languages")}:</span> {data.languages.map((l) => tr(l)).join(", ")}</p>
               <p className="mt-1"><span className="text-plum-soft">{tr("Interests")}:</span> {data.interests.join(", ")}</p>
+              <p className="mt-1"><span className="text-plum-soft">{tr("Price")}:</span> {formatBRL(data.rate)}/min</p>
             </div>
             <Check label={tr("I'm 18 or older and will complete identity verification before hosting.")} checked={data.adult} onChange={(v) => setData({ ...data, adult: v })} />
             <Check

@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { hosts as sampleHosts } from "@/data/hosts";
 import { getHostById } from "@/lib/data/hosts";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 import { Container, Skeleton } from "@/components/ui/primitives";
 import { getT } from "@/i18n/server";
 
-export const revalidate = 30; // keeps "Online now" close to real time
-
-export function generateStaticParams() {
-  return isSupabaseConfigured ? [] : sampleHosts.map((h) => ({ id: h.id }));
-}
+// Rendered per request: the page follows the visitor's language (cookie) and live presence.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { data: host } = await getHostById((await params).id);
