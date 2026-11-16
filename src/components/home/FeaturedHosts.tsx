@@ -37,7 +37,7 @@ export function FeaturedHosts({ hosts }: { hosts: Host[] }) {
           }
         />
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <CategoryPills value={category} onChange={setCategory} />
+          <CategoryPills value={category} onChange={(v) => setCategory(v as CategoryId | "all")} />
           {anySample && (
             <p className="flex items-center gap-1.5 text-xs text-plum-soft">
               <Info className="size-3.5" /> {t.featured.sampleNote}

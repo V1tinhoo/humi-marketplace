@@ -18,7 +18,21 @@ const isCategory = (v: string | null): v is CategoryId => !!v && ["talk", "play"
 
 const uniqSorted = (xs: string[]) => Array.from(new Set(xs.filter(Boolean))).sort();
 
-export function ExploreView({ hosts, source, error }: { hosts: Host[]; source: "demo" | "supabase"; error?: string }) {
+export function ExploreView({
+  hosts,
+  source,
+  error,
+  hrefBase = "/hosts",
+  categoryOptions,
+}: {
+  hosts: Host[];
+  source: "demo" | "supabase";
+  error?: string;
+  /** Where cards link to (the preview uses /preview/hosts). */
+  hrefBase?: string;
+  /** Custom categories (the preview's); defaults to the marketplace ones. */
+  categoryOptions?: { id: string; label: string }[];
+}) {
   const tr = useT();
   const locale = useLocale();
   const PRICE_MAX = hosts.length ? Math.max(...hosts.map((h) => h.priceAudioCents)) : 2000;
@@ -31,7 +45,8 @@ export function ExploreView({ hosts, source, error }: { hosts: Host[]; source: "
 
   const initialCat = params.get("category");
   const [query, setQuery] = useState(params.get("q") ?? "");
-  const [category, setCategory] = useState<CategoryId | "all">(isCategory(initialCat) ? initialCat : "all");
+  const validCategory = (v: string | null) => (categoryOptions ? categoryOptions.some((c) => c.id === v) : isCategory(v));
+  const [category, setCategory] = useState<string>(validCategory(initialCat) ? (initialCat as string) : "all");
   const [language, setLanguage] = useState("all");
   const [country, setCountry] = useState("all");
   const [maxPrice, setMaxPrice] = useState(PRICE_MAX);
@@ -59,7 +74,7 @@ export function ExploreView({ hosts, source, error }: { hosts: Host[]; source: "
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = hosts.filter((h) => {
-      if (category !== "all" && !h.categories.includes(category)) return false;
+      if (category !== "all" && !(h.categories as string[]).includes(category)) return false;
       if (language !== "all" && !h.languages.includes(language)) return false;
       if (country !== "all" && h.country !== country) return false;
       if (h.priceAudioCents > maxPrice) return false;
@@ -163,7 +178,7 @@ export function ExploreView({ hosts, source, error }: { hosts: Host[]; source: "
             {activeCount > 0 && <span className="grid size-5 place-items-center rounded-full bg-plum text-[11px] text-white">{activeCount}</span>}
           </button>
         </div>
-        <CategoryPills value={category} onChange={setCategory} />
+        <CategoryPills value={category} onChange={setCategory} options={categoryOptions} />
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[260px_1fr]">
@@ -224,7 +239,7 @@ export function ExploreView({ hosts, source, error }: { hosts: Host[]; source: "
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {results.map((h, i) => (
                 <div key={h.id} className="animate-fade-up" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
-                  <HostCard host={h} priority={i < 3} />
+                  <HostCard host={h} priority={i < 3} href={`${hrefBase}/${h.id}`} />
                 </div>
               ))}
             </div>

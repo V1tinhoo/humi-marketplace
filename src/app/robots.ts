@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 
 /** Private areas: nothing useful for search engines or AI assistants. */
-const PRIVATE = ["/account", "/admin", "/wallet", "/dashboard", "/call", "/api/", "/auth/", "/book/", "/reset-password", "/forgot-password"];
+const PRIVATE = ["/preview", "/account", "/admin", "/wallet", "/dashboard", "/call", "/api/", "/auth/", "/book/", "/reset-password", "/forgot-password"];
 
 /**
  * Search engines AND AI assistants are welcome: being read by them is how HUMI gets cited

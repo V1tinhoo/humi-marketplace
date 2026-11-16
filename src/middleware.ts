@@ -5,7 +5,7 @@ import { COUNTRY_COOKIE, LOCALE_COOKIE, detectLocale, isLocale } from "@/i18n";
 import { REDIRECT_HOSTS, SITE_URL } from "@/lib/site";
 
 /** Routes that require a signed-in user (role checks happen in the page). */
-const PROTECTED = ["/account", "/dashboard", "/become-a-host/apply", "/reset-password", "/wallet", "/call", "/admin"];
+const PROTECTED = ["/account", "/dashboard", "/become-a-host/apply", "/reset-password", "/wallet", "/call", "/admin", "/preview"];
 
 const YEAR = 60 * 60 * 24 * 365;
 

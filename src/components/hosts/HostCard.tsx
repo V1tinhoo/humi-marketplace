@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/primitives";
 import { formatBRL } from "@/lib/money";
 import { isNewHost } from "@/lib/utils";
 
-export function HostCard({ host, priority }: { host: Host; priority?: boolean }) {
+export function HostCard({ host, priority, href }: { host: Host; priority?: boolean; /** Defaults to the public profile. */ href?: string }) {
   const tr = useT();
   const locale = useLocale();
   return (
@@ -69,7 +69,7 @@ export function HostCard({ host, priority }: { host: Host; priority?: boolean })
             <span className="text-lg font-bold text-plum">{formatBRL(host.priceAudioCents)}</span> {tr("/ min")}
           </p>
           <Link
-            href={`/hosts/${host.id}`}
+            href={href ?? `/hosts/${host.id}`}
             className="inline-flex items-center gap-1 rounded-full bg-lilac px-3.5 py-2 text-sm font-semibold text-plum transition-colors group-hover:bg-lavender after:absolute after:inset-0"
             aria-label={tr("View {name}'s profile", { name: host.firstName })}
           >

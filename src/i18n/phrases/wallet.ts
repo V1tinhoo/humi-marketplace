@@ -163,6 +163,7 @@ export const walletPatterns: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^You can withdraw up to (\d+) cents right now\.$/, (m) => `Você pode sacar até ${brl(m[1])} agora.`],
   [/^Mercado Pago: (.+)$/, (m) => `Mercado Pago: ${m[1]}`],
   [/^Add at least (\d+) cents to start this call\.$/, (m) => `Adicione pelo menos R$ ${(Number(m[1]) / 100).toFixed(2).replace(".", ",")} para iniciar esta chamada.`],
+  [/^Add at least (\d+) cents of test balance to start this call\.$/, (m) => `Coloque pelo menos R$ ${(Number(m[1]) / 100).toFixed(2).replace(".", ",")} de saldo de teste para iniciar esta chamada.`],
   [/^Top-up must be between (\d+) and (\d+) cents\.$/, (m) => `A recarga precisa ser entre R$ ${(Number(m[1]) / 100).toFixed(2).replace(".", ",")} e R$ ${(Number(m[2]) / 100).toFixed(2).replace(".", ",")}.`],
   [/^Price must be between (\d+) and (\d+) cents per minute\.$/, (m) => `O preço precisa ser entre R$ ${(Number(m[1]) / 100).toFixed(2).replace(".", ",")} e R$ ${(Number(m[2]) / 100).toFixed(2).replace(".", ",")} por minuto.`],
   [/^This host doesn't offer (audio|video) (calls|sessions)\.$/, (m) => `Este host não oferece ${m[2] === "calls" ? "chamadas" : "sessões"} de ${m[1] === "audio" ? "áudio" : "vídeo"}.`],

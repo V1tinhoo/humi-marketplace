@@ -33,4 +33,4 @@ export const payouts = [
 ];
 
 /** Host earnings share after HUMI's commission (demo assumption). */
-export const HOST_SHARE = 0.9;
+export const HOST_SHARE = 0.8; // host keeps 80%, HUMI commission 20% (same as platform_settings.commission_bps)

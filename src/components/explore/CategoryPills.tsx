@@ -10,18 +10,21 @@ export function CategoryPills({
   value,
   onChange,
   className,
+  options,
 }: {
-  value: CategoryId | "all";
-  onChange: (v: CategoryId | "all") => void;
+  value: string;
+  onChange: (v: string) => void;
   className?: string;
+  /** Custom categories (e.g. the preview's). Defaults to the marketplace categories. */
+  options?: { id: string; label: string }[];
 }) {
   const tr = useT();
-  const items: { id: CategoryId | "all"; label: string }[] = [{ id: "all", label: tr("All") }, ...categories.map((c) => ({ id: c.id, label: tr(c.title) }))];
+  const items: { id: string; label: string }[] = [{ id: "all", label: tr("All") }, ...(options ?? categories.map((c) => ({ id: c.id, label: tr(c.title) })))];
   return (
     <div className={cn("no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0", className)} role="tablist" aria-label={tr("Filter by category")}>
       {items.map((item) => {
         const active = value === item.id;
-        const Icon = item.id !== "all" ? categoryVisuals[item.id].icon : null;
+        const Icon = item.id !== "all" ? categoryVisuals[item.id as CategoryId]?.icon : null;
         return (
           <button
             key={item.id}
