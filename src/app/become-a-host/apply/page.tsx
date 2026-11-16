@@ -37,7 +37,7 @@ export default function HostApplyPage() {
     supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle().then(({ data: p }) => setAvatar(p?.avatar_url ?? null));
   }, [user]);
   const [step, setStep] = useState(0);
-  const [limits, setLimits] = useState({ min: 50, max: 2000 });
+  const [limits, setLimits] = useState({ min: 100, max: 500 });
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     supabase

@@ -44,6 +44,7 @@ import { ReportDialog } from "@/components/safety/ReportDialog";
 import { RateCall } from "@/components/call/RateCall";
 import { CallChatPanel, useCallChat } from "@/components/call/CallChat";
 import { useT } from "@/i18n/client";
+import { startRing } from "@/lib/ringtone";
 import { formatBRL, formatDuration } from "@/lib/money";
 import { notifyWalletChanged } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
@@ -149,6 +150,12 @@ function MeetStage({ callId, conn, meter, endCall }: { callId: string; conn: Con
   const isVideoCall = call.call_type === "video";
   const otherName = isCustomer ? call.host_name : call.customer_name || tr("Guest");
   const live = call.status === "connected";
+  // The caller hears the "ringing" tone until the other person picks up.
+  const callerWaiting = isCustomer && call.status === "ringing";
+  useEffect(() => {
+    if (!callerWaiting) return;
+    return startRing("ringback");
+  }, [callerWaiting]);
 
   const [now, setNow] = useState(Date.now());
   const [chatOpen, setChatOpen] = useState(false);

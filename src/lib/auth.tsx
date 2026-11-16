@@ -204,9 +204,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, [supabase, user?.role]);
 
-  // Presence heartbeat: while a host has HUMI open, tell the server every minute.
-  // The public "Online" badge needs the switch ON *and* a heartbeat in the last 3 minutes,
-  // so closing the tab or losing connection makes the host appear offline automatically.
+  // Presence heartbeat: while a host has HUMI open, tell the server every 30 s.
+  // The public "Online" badge needs the switch ON *and* a heartbeat in the last 90 s.
+  // Closing the tab / leaving the site also sends an "offline" beacon so it's immediate;
+  // if that can't be sent (crash, lost connection) the 90 s window covers it.
   const isHost = user?.role === "host" || user?.role === "admin";
   useEffect(() => {
     if (!supabase || !isHost) return;
@@ -214,14 +215,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.rpc("host_presence", { p_online: true }).then(() => {}, () => {});
     };
     beat();
-    const timer = setInterval(beat, 60_000);
+    const timer = setInterval(beat, 30_000);
     const onVisible = () => {
       if (document.visibilityState === "visible") beat();
     };
+    // pagehide fires when the tab closes or the browser leaves the site (not on in-app navigation).
+    const onLeave = () => {
+      try {
+        navigator.sendBeacon("/api/presence/offline");
+      } catch {
+        /* best effort: the 90 s window still applies */
+      }
+    };
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("pagehide", onLeave);
     return () => {
       clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("pagehide", onLeave);
     };
   }, [supabase, isHost]);
 

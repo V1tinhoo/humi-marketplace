@@ -8,6 +8,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { formatBRL } from "@/lib/money";
 import type { MyCallRow } from "@/types/database";
 import { useT } from "@/i18n/client";
+import { startRing } from "@/lib/ringtone";
 
 /** For hosts: shows a ringing call on any page, with Answer / Decline. */
 export function IncomingCalls() {
@@ -38,6 +39,13 @@ export function IncomingCalls() {
     const t = setInterval(check, 5000);
     return () => clearInterval(t);
   }, [mode, isHost]);
+
+  // Ring (and vibrate on phones) while a call is waiting to be answered.
+  const ringingId = ringing && !pathname.startsWith("/call/") ? ringing.id : null;
+  useEffect(() => {
+    if (!ringingId) return;
+    return startRing("ringtone");
+  }, [ringingId]);
 
   if (!ringing || pathname.startsWith("/call/")) return null;
   const Icon = ringing.call_type === "video" ? Video : Mic;

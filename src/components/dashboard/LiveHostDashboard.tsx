@@ -690,7 +690,7 @@ function PricingEditor({ host, setToast }: { host: HostProfileRow; setToast: (s:
   const [loaded, setLoaded] = useState<{ audio: number; video: number | null } | null>(null);
   const [audio, setAudio] = useState("");
   const [video, setVideo] = useState("");
-  const [limits, setLimits] = useState({ min: 50, max: 2000 });
+  const [limits, setLimits] = useState({ min: 100, max: 500 });
   const [net, setNet] = useState<{ audio: number | null; video: number | null }>({ audio: null, video: null });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -702,7 +702,7 @@ function PricingEditor({ host, setToast }: { host: HostProfileRow; setToast: (s:
       supabase.from("platform_settings").select("key, value").in("key", ["price_min_cents_per_minute", "price_max_cents_per_minute"]),
     ]).then(([p, s]) => {
       const m = Object.fromEntries((s.data ?? []).map((r) => [r.key, Number(r.value)]));
-      setLimits({ min: m.price_min_cents_per_minute ?? 50, max: m.price_max_cents_per_minute ?? 2000 });
+      setLimits({ min: m.price_min_cents_per_minute ?? 100, max: m.price_max_cents_per_minute ?? 500 });
       const a = p.data?.audio_cents_per_minute ?? 100;
       const v = p.data?.video_cents_per_minute ?? null;
       setLoaded({ audio: a, video: v });
