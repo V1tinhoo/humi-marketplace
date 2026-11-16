@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LayoutDashboard, LogOut, Menu, UserRound, TrendingUp, Wallet as WalletIcon, X } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut, Menu, ShieldCheck, UserRound, TrendingUp, Wallet as WalletIcon, X } from "lucide-react";
+import { useIsAdmin } from "@/lib/admin";
 import { formatBRL } from "@/lib/money";
 import { useHostEarnings, useWalletBalance } from "@/lib/wallet";
 import { Logo } from "@/components/brand/Logo";
@@ -28,6 +29,7 @@ export function Navbar() {
   const isHostUser = user?.role === "host" || user?.role === "admin";
   // Hosts see what they've earned (separate from a wallet: earnings are paid out, not spent).
   const earnings = useHostEarnings(mode === "supabase" && isHostUser);
+  const isAdmin = useIsAdmin(mode === "supabase" && !!user);
   const [open, setOpen] = useState(false);
   const [menu, setMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -160,6 +162,11 @@ export function Navbar() {
                       {t.nav.account}
                     </MenuLink>
                   )}
+                  {isAdmin && (
+                    <MenuLink href="/admin" icon={<ShieldCheck className="size-4" />}>
+                      Admin
+                    </MenuLink>
+                  )}
                   <button
                     role="menuitem"
                     onClick={handleSignOut}
@@ -217,6 +224,13 @@ export function Navbar() {
               <li>
                 <Link href={dashboardHref} className="flex items-center justify-between border-b border-line py-4 text-2xl font-semibold tracking-tight">
                   {user.role === "host" ? t.nav.dashboard : t.nav.account}
+                </Link>
+              </li>
+            )}
+            {isAdmin && (
+              <li>
+                <Link href="/admin" className="flex items-center justify-between border-b border-line py-4 text-2xl font-semibold tracking-tight">
+                  Admin
                 </Link>
               </li>
             )}

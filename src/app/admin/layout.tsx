@@ -1,0 +1,10 @@
+import type { Metadata } from "next";
+import { getT } from "@/i18n/server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("HUMI admin"), robots: { index: false, follow: false } };
+}
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return children;
+}

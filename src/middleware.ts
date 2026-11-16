@@ -4,7 +4,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/sup
 import { COUNTRY_COOKIE, LOCALE_COOKIE, detectLocale, isLocale } from "@/i18n";
 
 /** Routes that require a signed-in user (role checks happen in the page). */
-const PROTECTED = ["/account", "/dashboard", "/become-a-host/apply", "/reset-password", "/wallet", "/call"];
+const PROTECTED = ["/account", "/dashboard", "/become-a-host/apply", "/reset-password", "/wallet", "/call", "/admin"];
 
 const YEAR = 60 * 60 * 24 * 365;
 

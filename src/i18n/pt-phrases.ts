@@ -10,6 +10,7 @@ import { wallet, walletPatterns } from "./phrases/wallet";
 import { call } from "./phrases/call";
 import { booking } from "./phrases/booking";
 import { dashboard } from "./phrases/dashboard";
+import { admin } from "./phrases/admin";
 
 export const ptPhrases: Record<string, string> = {
   ...home,
@@ -20,6 +21,7 @@ export const ptPhrases: Record<string, string> = {
   ...call,
   ...booking,
   ...dashboard,
+  ...admin,
 };
 
 /** Dynamic messages (numbers/names inside) that can't be looked up exactly. */
