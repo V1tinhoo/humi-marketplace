@@ -61,6 +61,21 @@ export async function createCheckout(opts: { topupId: string; amountCents: numbe
   return { preferenceId: pref.id, checkoutUrl: url };
 }
 
+/** Whether the access token belongs to a Mercado Pago TEST user or a real account (cached). */
+let accountKind: Promise<"real" | "test" | "unknown"> | null = null;
+export function mercadoPagoAccountKind() {
+  accountKind ??= mp<{ tags?: string[] }>("/users/me")
+    .then((u) => ((u.tags ?? []).includes("test_user") ? ("test" as const) : ("real" as const)))
+    .catch(() => {
+      accountKind = null;
+      return "unknown" as const;
+    });
+  return accountKind;
+}
+
+/** Readable reason from a Mercado Pago API error (no secrets), for the person paying. */
+export const mpErrorMessage = (e: unknown) => (e instanceof Error ? e.message.replace(/^Mercado Pago \d+: /, "") : "");
+
 export const PIX_MINUTES = 30;
 
 type MpOrder = {

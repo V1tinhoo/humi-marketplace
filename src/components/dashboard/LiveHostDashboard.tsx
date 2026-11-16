@@ -34,6 +34,7 @@ import { INTEREST_SUGGESTIONS } from "@/data/places";
 import { Field } from "@/components/auth/AuthShell";
 import { Toggle } from "@/components/explore/ExploreView";
 import { Panel, Stat } from "./HostDashboard";
+import { Withdrawals } from "./Withdrawals";
 import { ErrorPanel, StatusBadge, parseList } from "@/components/account/shared";
 import { categories as CATEGORY_LIST } from "@/data/categories";
 import { cn, formatPrice } from "@/lib/utils";
@@ -784,7 +785,7 @@ function Finance({ hostId }: { hostId: string }) {
   const [payouts, setPayouts] = useState<PayoutRecordRow[] | null>(null);
   const [account, setAccount] = useState<PayoutAccountRow | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     Promise.all([
       supabase.from("my_host_earnings_summary").select("*").maybeSingle(),
       supabase.from("my_calls").select("*").eq("i_am_host", true).order("created_at", { ascending: false }).limit(30),
@@ -799,6 +800,9 @@ function Finance({ hostId }: { hostId: string }) {
       setAccount(a.data ?? null);
     });
   }, [supabase, hostId]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const anyTest = (earnings ?? []).some((e) => !e.livemode);
   return (
@@ -864,24 +868,8 @@ function Finance({ hostId }: { hostId: string }) {
         )}
       </Panel>
 
-      <Panel title={tr("Payouts")}>
-        <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-lavender p-5 sm:flex-row sm:items-center">
-          <span className="grid size-11 place-items-center rounded-xl bg-lilac"><Banknote className="size-5" /></span>
-          <div className="flex-1">
-            <p className="font-semibold">{account?.status === "active" ? tr("Payout account connected") : tr("No payout account connected")}</p>
-            <p className="text-sm text-plum-soft">
-              {tr("Payouts are made by the HUMI team for now. Automatic payouts to your own account will come later.")}
-            </p>
-          </div>
-          <Button variant="secondary" disabled>{tr("Connect (coming soon)")}</Button>
-        </div>
-        {payouts && payouts.length > 0 && (
-          <ul className="mt-4 divide-y divide-line text-sm">
-            {payouts.map((p) => (
-              <li key={p.id} className="flex justify-between py-2.5"><span>{new Date(p.created_at).toLocaleDateString(loc)}</span><span className="text-plum-soft">{p.status}</span><span className="font-semibold">{formatBRL(p.amount_cents)}</span></li>
-            ))}
-          </ul>
-        )}
+      <Panel title={tr("Withdraw")}>
+        <Withdrawals available={summary === undefined ? null : Number(summary?.available_cents ?? 0)} account={account} payouts={payouts} onChanged={load} />
       </Panel>
     </div>
   );

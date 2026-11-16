@@ -232,7 +232,7 @@ export type EarningsSummaryRow = {
   /** Earnings from test calls (test balance): never paid out. */
   test_earned_cents?: number;
 };
-export type PayoutAccountRow = { host_id: string; provider: string | null; provider_account_id: string | null; status: string; updated_at: string };
+export type PayoutAccountRow = { host_id: string; provider: string | null; provider_account_id: string | null; pix_key_type?: string | null; status: string; updated_at: string };
 export type PayoutRecordRow = { id: string; host_id: string; amount_cents: number; status: string; provider: string | null; provider_payout_id: string | null; livemode: boolean; created_at: string; updated_at: string };
 export type PlatformSettingRow = { key: string; value: number; description: string; updated_at: string };
 
@@ -326,6 +326,9 @@ export type Database = {
         Args: { p_reason: ReportReason; p_details?: string | null; p_call_id?: string | null; p_booking_id?: string | null; p_host_id?: string | null };
         Returns: string;
       };
+      set_payout_pix_key: { Args: { p_key_type: string; p_key: string }; Returns: PayoutAccountRow };
+      request_payout: { Args: { p_amount_cents: number }; Returns: PayoutRecordRow };
+      cancel_payout: { Args: { p_payout_id: string }; Returns: PayoutRecordRow };
       set_host_pricing: { Args: { p_audio_cents: number; p_video_cents: number | null }; Returns: HostPricingRow };
       become_host: { Args: Record<string, never>; Returns: string };
       host_presence: { Args: { p_online?: boolean }; Returns: undefined };

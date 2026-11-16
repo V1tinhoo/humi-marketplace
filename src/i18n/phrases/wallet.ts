@@ -119,6 +119,7 @@ export const wallet: Record<string, string> = {
   "Invalid amount.": "Valor inválido.",
   "Invalid booking.": "Agendamento inválido.",
   "Invalid host.": "Host inválido.",
+  "Payments are misconfigured: the site is in live mode but uses a Mercado Pago TEST account. Use the production Access Token of your real account.": "Pagamentos mal configurados: o site está em modo real, mas usa uma conta de TESTE do Mercado Pago. Use o Access Token de produção da sua conta real.",
   "Mercado Pago is unavailable right now. Please try again.": "O Mercado Pago está indisponível agora. Tente novamente.",
   "Not found.": "Não encontrado.",
   "Please log in to start a call.": "Entre na sua conta para iniciar uma chamada.",
@@ -155,7 +156,12 @@ export const wallet: Record<string, string> = {
 };
 
 /** Messages that carry numbers or names (from the database): pattern → Portuguese. */
+const brl = (n: string) => `R$ ${(Number(n) / 100).toFixed(2).replace(".", ",")}`;
+
 export const walletPatterns: [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^The minimum withdrawal is (\d+) cents\.$/, (m) => `O saque mínimo é de ${brl(m[1])}.`],
+  [/^You can withdraw up to (\d+) cents right now\.$/, (m) => `Você pode sacar até ${brl(m[1])} agora.`],
+  [/^Mercado Pago: (.+)$/, (m) => `Mercado Pago: ${m[1]}`],
   [/^Add at least (\d+) cents to start this call\.$/, (m) => `Adicione pelo menos R$ ${(Number(m[1]) / 100).toFixed(2).replace(".", ",")} para iniciar esta chamada.`],
   [/^Top-up must be between (\d+) and (\d+) cents\.$/, (m) => `A recarga precisa ser entre R$ ${(Number(m[1]) / 100).toFixed(2).replace(".", ",")} e R$ ${(Number(m[2]) / 100).toFixed(2).replace(".", ",")}.`],
   [/^Price must be between (\d+) and (\d+) cents per minute\.$/, (m) => `O preço precisa ser entre R$ ${(Number(m[1]) / 100).toFixed(2).replace(".", ",")} e R$ ${(Number(m[2]) / 100).toFixed(2).replace(".", ",")} por minuto.`],
