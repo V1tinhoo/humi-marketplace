@@ -8,12 +8,19 @@ const PROTECTED = ["/account", "/dashboard", "/become-a-host/apply", "/reset-pas
 
 const YEAR = 60 * 60 * 24 * 365;
 
+/**
+ * Link-preview robots (WhatsApp, Instagram/Facebook, Telegram, X…) run on servers abroad, so
+ * geolocation would give them English. HUMI's audience is Brazilian: previews use Portuguese.
+ */
+const PREVIEW_BOT = /WhatsApp|facebookexternalhit|Facebot|meta-externalagent|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|Pinterest|SkypeUriPreview|Applebot|redditbot|Embedly|Googlebot|bingbot/i;
+
 export async function middleware(request: NextRequest) {
   // Language: picked automatically on the first visit (Brazil → Portuguese, elsewhere → English),
   // then remembered. The country comes from Vercel's IP geolocation header.
   const country = request.headers.get("x-vercel-ip-country");
   const saved = request.cookies.get(LOCALE_COOKIE)?.value;
-  const locale = isLocale(saved) ? saved : detectLocale({ country, acceptLanguage: request.headers.get("accept-language") });
+  const bot = PREVIEW_BOT.test(request.headers.get("user-agent") ?? "");
+  const locale = isLocale(saved) ? saved : bot ? "pt" : detectLocale({ country, acceptLanguage: request.headers.get("accept-language") });
   if (!isLocale(saved)) request.cookies.set(LOCALE_COOKIE, locale);
   if (country) request.cookies.set(COUNTRY_COOKIE, country);
   const finish = (res: NextResponse) => {

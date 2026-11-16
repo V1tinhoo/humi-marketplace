@@ -6,7 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { BetaBar } from "@/components/layout/BetaBar";
 import { IncomingCalls } from "@/components/call/IncomingCalls";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { I18nProvider } from "@/i18n/client";
 import { COUNTRY_COOKIE } from "@/i18n";
 import { getLocale } from "@/i18n/server";
@@ -15,11 +15,20 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "sw
 
 export async function generateMetadata(): Promise<Metadata> {
   const pt = (await getLocale()) === "pt";
+  // Absolute links for previews: the address the site is being opened on (humi.chat, vercel.app…).
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const title = pt ? "HUMI — Pessoas reais. Conexões reais." : "HUMI — Real people. Real connections.";
+  const description = pt
+    ? "Converse por vídeo ou áudio com pessoas reais do mundo todo: bater papo, praticar idiomas, jogar e trocar experiências."
+    : "Talk by video or audio with real people around the world: chat, practise languages, play and share experiences.";
   return {
-    title: { default: pt ? "HUMI — Pessoas reais. Conexões reais." : "HUMI — Real people. Real connections.", template: "%s · HUMI" },
-    description: pt
-      ? "O HUMI é um marketplace global para conversar, jogar, praticar idiomas e dividir momentos com pessoas reais do mundo todo."
-      : "HUMI is a global marketplace to talk, play, practice languages and share moments with real people around the world.",
+    metadataBase: new URL(`${proto}://${host}`),
+    title: { default: title, template: "%s · HUMI" },
+    description,
+    openGraph: { type: "website", siteName: "HUMI", title, description, locale: pt ? "pt_BR" : "en_US", url: "/" },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
