@@ -26,11 +26,9 @@ export async function Hero() {
           </p>
           <h1 className="mt-6 text-balance text-[2.6rem] font-extrabold leading-[1.02] tracking-[-0.035em] text-plum sm:text-6xl lg:text-[4.4rem]">
             {tr("The world is full of people")}{" "}
-            <span className="relative sm:whitespace-nowrap">
-              <span className="relative z-10">{tr("worth talking to.")}</span>
-              <svg aria-hidden viewBox="0 0 300 20" preserveAspectRatio="none" className="absolute -bottom-1 left-0 z-0 hidden h-4 w-full text-rose sm:block sm:h-5">
-                <path d="M2 14 C 60 4, 140 4, 298 12" stroke="currentColor" strokeWidth="9" fill="none" strokeLinecap="round" />
-              </svg>
+            {/* Wraps freely (Portuguese is longer); the rose underline follows every line. */}
+            <span className="bg-[linear-gradient(var(--color-rose),var(--color-rose))] bg-[length:100%_0.16em] bg-[position:0_94%] bg-no-repeat [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">
+              {tr("worth talking to.")}
             </span>
           </h1>
           <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-plum-soft sm:text-xl">{t.hero.body}</p>
@@ -79,7 +77,7 @@ export async function Hero() {
               <p className="text-xs text-plum-soft">{tr("Travel stories with Sophie")}</p>
             </div>
           </div>
-          <div className="absolute right-[2%] top-[38%] z-10 hidden rounded-2xl bg-plum px-4 py-3 text-white shadow-lift sm:block">
+          <div className="absolute bottom-[2%] right-0 z-10 hidden rounded-2xl bg-plum px-4 py-3 text-white shadow-lift sm:block">
             <p className="text-xs text-white/70">{tr("Speaking")}</p>
             <p className="text-sm font-semibold">{tr("Portuguese · English")}</p>
           </div>
