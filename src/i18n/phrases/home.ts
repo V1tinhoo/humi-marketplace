@@ -31,7 +31,7 @@ export const home: Record<string, string> = {
   "Best chat of my week": "Melhor conversa da minha semana",
   // sections
   "Browse hosts": "Ver hosts",
-  "Join hosts from 14 countries in our sample community.": "Junte-se a hosts de 14 países na nossa comunidade de exemplo.",
+  "Start today and meet people from all over the world.": "Comece hoje e conheça pessoas do mundo todo.",
   "Read our safety approach": "Conheça nossa abordagem de segurança",
   Planned: "Planejado",
   "Free to browse. 18+ only.": "Navegar é grátis. Apenas 18+.",

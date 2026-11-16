@@ -22,8 +22,7 @@ export function BetaBar() {
 
   return (
     <div className="relative bg-plum px-10 py-2 text-center text-xs font-medium text-white sm:text-[13px]">
-      <span className="mr-2 rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider">{tr("Beta preview")}</span>
-      {tr("Profiles, bookings and payments on this site are demonstrations. No real sessions or charges.")}
+      <span className="rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider">{tr("Beta preview")}</span>
       <button
         onClick={() => {
           setVisible(false);

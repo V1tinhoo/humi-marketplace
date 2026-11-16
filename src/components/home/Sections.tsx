@@ -109,7 +109,7 @@ export async function HostCtaSection() {
                   <Image key={f.id} src={f.photo} alt="" width={40} height={40} className="size-10 rounded-full object-cover ring-2 ring-white" />
                 ))}
               </div>
-              <p className="text-sm text-plum">{tr("Join hosts from 14 countries in our sample community.")}</p>
+              <p className="text-sm text-plum">{tr("Start today and meet people from all over the world.")}</p>
             </div>
           </div>
         </div>
