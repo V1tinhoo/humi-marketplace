@@ -1,4 +1,7 @@
+"use client";
+
 import type { BookingStatus } from "@/types/database";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 const STATUS: Record<BookingStatus, { label: string; cls: string }> = {
@@ -9,8 +12,9 @@ const STATUS: Record<BookingStatus, { label: string; cls: string }> = {
 };
 
 export function StatusBadge({ status, className }: { status: BookingStatus; className?: string }) {
+  const tr = useT();
   const s = STATUS[status];
-  return <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", s.cls, className)}>{s.label}</span>;
+  return <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", s.cls, className)}>{tr(s.label)}</span>;
 }
 
 /** Comma-separated text → trimmed, de-duplicated list. */
@@ -18,12 +22,13 @@ export const parseList = (v: string, max = 20) =>
   Array.from(new Set(v.split(",").map((x) => x.trim()).filter(Boolean))).slice(0, max);
 
 export function ErrorPanel({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const tr = useT();
   return (
     <div role="alert" className="rounded-[var(--radius-card)] bg-white px-6 py-12 text-center ring-1 ring-line">
-      <p className="font-semibold">{message}</p>
+      <p className="font-semibold">{tr(message)}</p>
       {onRetry && (
         <button onClick={onRetry} className="mt-4 rounded-full bg-plum px-5 py-2 text-sm font-semibold text-white">
-          Try again
+          {tr("Try again")}
         </button>
       )}
     </div>

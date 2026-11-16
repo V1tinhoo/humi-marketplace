@@ -1,12 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { useLocale, useT } from "@/i18n/client";
+import { countryLabel } from "@/data/places";
 import { ArrowUpRight, Languages, MapPin } from "lucide-react";
 import type { Host } from "@/types";
 import { HostPhoto, PresenceBadge, Rating } from "./HostBits";
 import { Skeleton } from "@/components/ui/primitives";
 import { formatBRL } from "@/lib/money";
-import { isNewHost, sessionsLabel } from "@/lib/utils";
+import { isNewHost } from "@/lib/utils";
 
 export function HostCard({ host, priority }: { host: Host; priority?: boolean }) {
+  const tr = useT();
+  const locale = useLocale();
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-white ring-1 ring-line transition-all duration-300 hover:-translate-y-1 hover:shadow-lift hover:ring-lavender/70">
       <div className="relative">
@@ -20,7 +26,7 @@ export function HostCard({ host, priority }: { host: Host; priority?: boolean })
         <PresenceBadge online={host.online} className="absolute left-3 top-3" />
         {host.isSample && (
           <span className="absolute right-3 top-3 rounded-full bg-plum/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur">
-            Sample
+            {tr("Sample")}
           </span>
         )}
         <div className="absolute inset-x-4 bottom-3 flex items-end justify-between text-white">
@@ -28,7 +34,7 @@ export function HostCard({ host, priority }: { host: Host; priority?: boolean })
             {host.firstName}{host.age ? <>, <span className="font-medium">{host.age}</span></> : null}
           </h3>
           <span className="flex items-center gap-1 text-xs font-medium text-white/90">
-            <MapPin className="size-3.5" aria-hidden /> {host.country}
+            <MapPin className="size-3.5" aria-hidden /> {countryLabel(host.country, locale)}
           </span>
         </div>
       </div>
@@ -38,36 +44,36 @@ export function HostCard({ host, priority }: { host: Host; priority?: boolean })
           {host.reviewCount > 0 ? (
             <Rating value={host.rating} count={host.reviewCount} />
           ) : isNewHost(host) ? (
-            <span className="rounded-full bg-lilac px-2 py-0.5 text-xs font-semibold text-plum">New host</span>
+            <span className="rounded-full bg-lilac px-2 py-0.5 text-xs font-semibold text-plum">{tr("New host")}</span>
           ) : (
-            <span className="text-xs font-semibold text-plum">{sessionsLabel(host.sessionsCompleted)}</span>
+            <span className="text-xs font-semibold text-plum">{tr(host.sessionsCompleted === 1 ? "{n} session" : "{n} sessions", { n: host.sessionsCompleted })}</span>
           )}
           <span className="flex min-w-0 items-center gap-1 text-xs text-plum-soft">
             <Languages className="size-3.5 shrink-0" aria-hidden />
-            <span className="truncate">{host.languages.join(", ")}</span>
+            <span className="truncate">{host.languages.map((l) => tr(l)).join(", ")}</span>
           </span>
         </div>
 
         <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-plum-soft">{host.tagline}</p>
 
-        <ul className="mb-4 mt-3 flex flex-wrap gap-1.5" aria-label="Interests">
+        <ul className="mb-4 mt-3 flex flex-wrap gap-1.5" aria-label={tr("Interests")}>
           {host.interests.map((i) => (
             <li key={i} className="rounded-full bg-blush px-2.5 py-1 text-xs font-medium text-plum">
-              {i}
+              {tr(i)}
             </li>
           ))}
         </ul>
 
         <div className="mt-auto flex items-center justify-between border-t border-line pt-4">
           <p className="text-sm text-plum-soft">
-            <span className="text-lg font-bold text-plum">{formatBRL(host.priceAudioCents)}</span> / min
+            <span className="text-lg font-bold text-plum">{formatBRL(host.priceAudioCents)}</span> {tr("/ min")}
           </p>
           <Link
             href={`/hosts/${host.id}`}
             className="inline-flex items-center gap-1 rounded-full bg-lilac px-3.5 py-2 text-sm font-semibold text-plum transition-colors group-hover:bg-lavender after:absolute after:inset-0"
-            aria-label={`View ${host.firstName}'s profile`}
+            aria-label={tr("View {name}'s profile", { name: host.firstName })}
           >
-            View profile <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            {tr("View profile")} <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { ReportReason } from "@/types/database";
+import { useT } from "@/i18n/client";
 
 export type ReportTarget = { callId: string } | { bookingId: string } | { hostId: string };
 
@@ -42,6 +43,7 @@ export function ReportDialog({
   offerEndCall?: boolean;
 }) {
   const { mode, user } = useAuth();
+  const tr = useT();
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState("");
   const [endCall, setEndCall] = useState(true);
@@ -101,11 +103,11 @@ export function ReportDialog({
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-6 pb-3 pt-5">
           <div>
             <h2 id="report-title" className="flex items-center gap-2 text-lg font-bold">
-              <Flag className="size-4" /> {state === "done" ? "Report sent" : `Report ${name}`}
+              <Flag className="size-4" /> {state === "done" ? tr("Report sent") : tr("Report {name}", { name })}
             </h2>
-            {state !== "done" && <p className="mt-0.5 text-sm text-plum-soft">Reports are confidential. What happened?</p>}
+            {state !== "done" && <p className="mt-0.5 text-sm text-plum-soft">{tr("Reports are confidential. What happened?")}</p>}
           </div>
-          <button onClick={onClose} className="-mr-2 grid size-9 shrink-0 place-items-center rounded-full hover:bg-lilac" aria-label="Close">
+          <button onClick={onClose} className="-mr-2 grid size-9 shrink-0 place-items-center rounded-full hover:bg-lilac" aria-label={tr("Close")}>
             <X className="size-5" />
           </button>
         </div>
@@ -113,17 +115,17 @@ export function ReportDialog({
         {state === "done" ? (
           <div className="px-6 py-6 text-center">
             <CheckCircle2 className="mx-auto size-10 text-online" />
-            <h3 className="mt-3 text-lg font-bold">Thanks for telling us</h3>
+            <h3 className="mt-3 text-lg font-bold">{tr("Thanks for telling us")}</h3>
             <p className="mt-1 text-sm text-plum-soft">
-              Our team will review this report. {name} won&apos;t be told who reported them. If you&apos;re in danger, contact local emergency services.
+              {tr("Our team will review this report. {name} won't be told who reported them. If you're in danger, contact local emergency services.", { name })}
             </p>
-            <Button className="mt-5" onClick={onClose}>Close</Button>
+            <Button className="mt-5" onClick={onClose}>{tr("Close")}</Button>
           </div>
         ) : (
           <>
             {/* Body: the only part that scrolls. */}
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">
-              <div className="grid gap-1.5" role="radiogroup" aria-label="Reason">
+              <div className="grid gap-1.5" role="radiogroup" aria-label={tr("Reason")}>
                 {REASONS.map((r) => (
                   <button
                     key={r.id}
@@ -136,26 +138,26 @@ export function ReportDialog({
                       reason === r.id ? "bg-lilac font-semibold ring-2 ring-lavender" : "bg-cream ring-1 ring-line hover:ring-lavender",
                     )}
                   >
-                    {r.label}
+                    {tr(r.label)}
                   </button>
                 ))}
               </div>
 
-              <label className="mt-4 block text-sm font-semibold" htmlFor="report-details">Details (optional)</label>
+              <label className="mt-4 block text-sm font-semibold" htmlFor="report-details">{tr("Details (optional)")}</label>
               <textarea
                 id="report-details"
                 rows={3}
                 maxLength={1000}
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
-                placeholder="Anything that helps us understand"
+                placeholder={tr("Anything that helps us understand")}
                 className="mt-1.5 w-full rounded-xl bg-cream p-3 text-sm ring-1 ring-line outline-none focus:ring-2 focus:ring-lavender"
               />
 
               {offerEndCall && (
                 <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-sm">
                   <input type="checkbox" checked={endCall} onChange={(e) => setEndCall(e.target.checked)} className="size-4 accent-[#493C62]" />
-                  End the call now
+                  {tr("End the call now")}
                 </label>
               )}
             </div>
@@ -165,7 +167,7 @@ export function ReportDialog({
               <FormError message={error} className="mb-3" />
               <div className="flex gap-2">
                 <button type="button" onClick={onClose} className="h-11 flex-1 rounded-full bg-cream text-[15px] font-semibold ring-1 ring-line hover:bg-lilac">
-                  Cancel
+                  {tr("Cancel")}
                 </button>
                 <button
                   type="button"
@@ -174,7 +176,7 @@ export function ReportDialog({
                   className="inline-flex h-11 flex-[2] items-center justify-center gap-2 rounded-full bg-[#c2405a] text-[15px] font-semibold text-white transition hover:bg-[#a3324a] disabled:opacity-60"
                 >
                   {state === "sending" && <Loader2 className="size-4 animate-spin" />}
-                  Send report
+                  {tr("Send report")}
                 </button>
               </div>
             </div>

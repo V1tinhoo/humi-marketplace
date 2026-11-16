@@ -4,6 +4,8 @@
  * Names are hard-coded (not Intl.DisplayNames) so server and browser render identical text.
  */
 
+import { COUNTRY_NAMES_PT } from "./countries-pt";
+
 export const COUNTRIES = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
   "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
@@ -236,3 +238,15 @@ export const INTEREST_SUGGESTIONS = [
   "Languages", "Photography", "Fashion", "History", "Comedy", "Anime", "Board Games", "Fitness", "Yoga", "Nature",
   "Podcasts", "Science", "Startups", "Culture", "Dance", "Pets", "Coffee", "Philosophy",
 ];
+
+
+/** Country name to show (profiles store the English name). */
+export const countryLabel = (name: string | null | undefined, locale: "en" | "pt") =>
+  !name ? "" : locale === "pt" ? (COUNTRY_NAMES_PT[name] ?? name) : name;
+
+/** English country name (as stored) for an ISO code like "BR", or null. */
+export function countryFromCode(code: string | null | undefined): string | null {
+  if (!code) return null;
+  const up = code.toUpperCase();
+  return Object.keys(COUNTRY_CODES).find((n) => COUNTRY_CODES[n] === up) ?? null;
+}

@@ -4,6 +4,7 @@ import { categories } from "@/data/categories";
 import { categoryVisuals } from "@/components/home/CategoryCard";
 import type { CategoryId } from "@/types";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 export function CategoryPills({
   value,
@@ -14,9 +15,10 @@ export function CategoryPills({
   onChange: (v: CategoryId | "all") => void;
   className?: string;
 }) {
-  const items: { id: CategoryId | "all"; label: string }[] = [{ id: "all", label: "All" }, ...categories.map((c) => ({ id: c.id, label: c.title }))];
+  const tr = useT();
+  const items: { id: CategoryId | "all"; label: string }[] = [{ id: "all", label: tr("All") }, ...categories.map((c) => ({ id: c.id, label: tr(c.title) }))];
   return (
-    <div className={cn("no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0", className)} role="tablist" aria-label="Filter by category">
+    <div className={cn("no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0", className)} role="tablist" aria-label={tr("Filter by category")}>
       {items.map((item) => {
         const active = value === item.id;
         const Icon = item.id !== "all" ? categoryVisuals[item.id].icon : null;

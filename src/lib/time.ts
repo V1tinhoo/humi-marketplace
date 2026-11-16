@@ -141,8 +141,8 @@ export function dayShift(date: Date, fromTz: string, toTz: string) {
 }
 
 /** Full local description, e.g. "Sat, Nov 21, 19:00 (GMT-5)". */
-export function describeInZone(date: Date, timeZone: string, opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" }) {
-  const day = date.toLocaleDateString("en-US", { ...opts, timeZone });
+export function describeInZone(date: Date, timeZone: string, opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" }, locale = "en-US") {
+  const day = date.toLocaleDateString(locale, { ...opts, timeZone });
   return `${day}, ${timeInZone(date, timeZone)} (${tzLabel(timeZone, date)})`;
 }
 

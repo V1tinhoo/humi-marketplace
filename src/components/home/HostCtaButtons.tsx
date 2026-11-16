@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 /**
  * "Become a host" calls to action that depend on who is looking:
@@ -11,13 +12,14 @@ import { cn } from "@/lib/utils";
  */
 export function HostCtaButtons({ single, className }: { single?: boolean; className?: string }) {
   const { user, mode } = useAuth();
+  const tr = useT();
   const isHost = user?.role === "host" || user?.role === "admin";
 
   const primary = isHost
-    ? { href: "/dashboard", label: "Go to host dashboard" }
+    ? { href: "/dashboard", label: tr("Go to host dashboard") }
     : user
-      ? { href: "/become-a-host/apply", label: "Apply to host" }
-      : { href: "/signup?role=host", label: "Apply to host" };
+      ? { href: "/become-a-host/apply", label: tr("Apply to host") }
+      : { href: "/signup?role=host", label: tr("Apply to host") };
 
   return (
     <div className={cn("flex flex-col gap-3 sm:flex-row", className)}>
@@ -27,7 +29,7 @@ export function HostCtaButtons({ single, className }: { single?: boolean; classN
       {!single && !isHost && (
         user ? null : (
           <ButtonLink href={mode === "demo" ? "/login?role=host&next=/dashboard" : "/login?next=/become-a-host/apply"} size="lg" variant="secondary">
-            {mode === "demo" ? "Preview host dashboard" : "I already have an account"}
+            {mode === "demo" ? tr("Preview host dashboard") : tr("I already have an account")}
           </ButtonLink>
         )
       )}

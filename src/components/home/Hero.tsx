@@ -3,9 +3,11 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/primitives";
 import { HostPhoto } from "@/components/hosts/HostBits";
 import { getHost } from "@/data/hosts";
-import { t } from "@/i18n";
+import { getDict, getT } from "@/i18n/server";
 
-export function Hero() {
+export async function Hero() {
+  const t = await getDict();
+  const tr = await getT();
   const [a, b, c, d] = ["sophie", "alex", "amara", "walter"].map((id) => getHost(id)!);
 
   return (
@@ -19,13 +21,13 @@ export function Hero() {
       <Container className="grid items-center gap-12 pb-16 pt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-8 lg:pb-28 lg:pt-16">
         <div className="animate-fade-up">
           <p className="inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pl-1.5 pr-4 text-sm font-medium text-plum ring-1 ring-line backdrop-blur">
-            <span className="rounded-full bg-lavender px-2.5 py-0.5 text-xs font-semibold text-plum-deep">New</span>
+            <span className="rounded-full bg-lavender px-2.5 py-0.5 text-xs font-semibold text-plum-deep">{tr("New")}</span>
             {t.hero.eyebrow}
           </p>
           <h1 className="mt-6 text-balance text-[2.6rem] font-extrabold leading-[1.02] tracking-[-0.035em] text-plum sm:text-6xl lg:text-[4.4rem]">
-            The world is full of people{" "}
+            {tr("The world is full of people")}{" "}
             <span className="relative whitespace-nowrap">
-              <span className="relative z-10">worth talking to.</span>
+              <span className="relative z-10">{tr("worth talking to.")}</span>
               <svg aria-hidden viewBox="0 0 300 20" preserveAspectRatio="none" className="absolute -bottom-1 left-0 z-0 h-4 w-full text-rose sm:h-5">
                 <path d="M2 14 C 60 4, 140 4, 298 12" stroke="currentColor" strokeWidth="9" fill="none" strokeLinecap="round" />
               </svg>
@@ -41,14 +43,14 @@ export function Hero() {
             </ButtonLink>
           </div>
           <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-plum-soft">
-            <li className="flex items-center gap-2"><Mic className="size-4 text-plum" /> Audio or video</li>
-            <li className="flex items-center gap-2"><Globe2 className="size-4 text-plum" /> Hosts around the world</li>
-            <li className="flex items-center gap-2"><Gamepad2 className="size-4 text-plum" /> Talk, play or practice</li>
+            <li className="flex items-center gap-2"><Mic className="size-4 text-plum" /> {tr("Audio or video")}</li>
+            <li className="flex items-center gap-2"><Globe2 className="size-4 text-plum" /> {tr("Hosts around the world")}</li>
+            <li className="flex items-center gap-2"><Gamepad2 className="size-4 text-plum" /> {tr("Talk, play or practice")}</li>
           </ul>
         </div>
 
         {/* Portrait collage */}
-        <div className="relative mx-auto h-[440px] w-full max-w-[520px] sm:h-[520px]" aria-label="Sample host portraits">
+        <div className="relative mx-auto h-[440px] w-full max-w-[520px] sm:h-[520px]" aria-label={tr("Sample host portraits")}>
           {/* connection line */}
           <svg aria-hidden viewBox="0 0 520 520" className="absolute inset-0 size-full text-lavender">
             <path d="M120 120 C 260 60, 330 200, 400 150 S 420 380, 300 400 S 120 420, 150 300" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="2 8" strokeLinecap="round" />
@@ -73,16 +75,16 @@ export function Hero() {
               <Video className="size-4" />
             </span>
             <div className="leading-tight">
-              <p className="text-sm font-semibold text-plum">Video · 30 min</p>
-              <p className="text-xs text-plum-soft">Travel stories with Sophie</p>
+              <p className="text-sm font-semibold text-plum">{tr("Video · 30 min")}</p>
+              <p className="text-xs text-plum-soft">{tr("Travel stories with Sophie")}</p>
             </div>
           </div>
           <div className="absolute right-[2%] top-[38%] z-10 hidden rounded-2xl bg-plum px-4 py-3 text-white shadow-lift sm:block">
-            <p className="text-xs text-white/70">Speaking</p>
-            <p className="text-sm font-semibold">Portuguese · English</p>
+            <p className="text-xs text-white/70">{tr("Speaking")}</p>
+            <p className="text-sm font-semibold">{tr("Portuguese · English")}</p>
           </div>
           <div className="absolute bottom-[38%] left-[-2%] z-10 rounded-full bg-blush px-3.5 py-2 text-xs font-semibold text-plum shadow-soft ring-1 ring-white">
-            &ldquo;Best chat of my week&rdquo;
+            &ldquo;{tr("Best chat of my week")}&rdquo;
           </div>
         </div>
       </Container>

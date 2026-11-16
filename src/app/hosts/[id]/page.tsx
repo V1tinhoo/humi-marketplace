@@ -13,7 +13,11 @@ import { HostCard } from "@/components/hosts/HostCard";
 import { BookingCard } from "@/components/profile/BookingCard";
 import { ProfileActions } from "@/components/profile/ProfileActions";
 import { Container } from "@/components/ui/primitives";
-import { formatDate, isNewHost, sessionsLabel } from "@/lib/utils";
+import { formatDate, isNewHost } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
+import { getLocale, getT } from "@/i18n/server";
+import { intlLocale } from "@/i18n";
+import { countryLabel } from "@/data/places";
 
 export const revalidate = 30; // keeps "Online now" close to real time
 
@@ -24,7 +28,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { data: host } = await getHostById((await params).id);
-  return { title: host ? `${host.firstName} from ${host.country}` : "Host not found" };
+  const tr = await getT();
+  const locale = await getLocale();
+  return { title: host ? tr("{name} from {country}", { name: host.firstName, country: countryLabel(host.country, locale) }) : tr("Host not found") };
 }
 
 export default async function HostProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,13 +39,16 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
 
   const [reviews, { data: all }] = await Promise.all([getHostReviews(host.id), getHosts()]);
   const similar = all.filter((h) => h.id !== host.id && h.categories.some((c) => host.categories.includes(c))).slice(0, 3);
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const tr = await getT();
+  const locale = await getLocale();
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => tr(d));
+  const sessions = tr(host.sessionsCompleted === 1 ? "{n} session" : "{n} sessions", { n: host.sessionsCompleted });
 
   return (
     <div className="pb-28 lg:pb-24">
       <Container className="pt-6 lg:pt-10">
         <Link href="/explore" className="inline-flex items-center gap-1.5 text-sm font-medium text-plum-soft transition hover:text-plum">
-          <ArrowLeft className="size-4" /> Back to explore
+          <ArrowLeft className="size-4" /> {tr("Back to explore")}
         </Link>
 
         <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_380px] lg:gap-12">
@@ -53,15 +62,15 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   {host.isSample && (
-                    <span className="rounded-full bg-plum px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-white">Sample profile</span>
+                    <span className="rounded-full bg-plum px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-white">{tr("Sample profile")}</span>
                   )}
                   {host.verified ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-online/10 px-2.5 py-1 text-xs font-semibold text-online">
-                      <BadgeCheck className="size-3.5" /> Verified
+                      <BadgeCheck className="size-3.5" /> {tr("Verified")}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-plum-soft ring-1 ring-line" title="Identity verification isn't active yet">
-                      <ShieldQuestion className="size-3.5" /> Not yet verified
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-plum-soft ring-1 ring-line" title={tr("Identity verification isn't active yet")}>
+                      <ShieldQuestion className="size-3.5" /> {tr("Not yet verified")}
                     </span>
                   )}
                 </div>
@@ -70,29 +79,29 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
                 </h1>
                 <p className="mt-3 text-lg text-plum-soft">{host.tagline}</p>
                 <dl className="mt-5 grid gap-2.5 text-sm">
-                  <div className="flex items-center gap-2.5"><MapPin className="size-4 shrink-0" /><dt className="sr-only">Location</dt><dd>{[host.region || host.city, host.country].filter(Boolean).join(", ")} · {tzLabel(host.timezone)}</dd></div>
-                  <div className="flex items-center gap-2.5"><Languages className="size-4 shrink-0" /><dt className="sr-only">Languages</dt><dd>Speaks {host.languages.join(", ")}</dd></div>
-                  <div className="flex items-center gap-2.5"><Star className="size-4 shrink-0" /><dt className="sr-only">Rating</dt><dd>{host.reviewCount > 0 ? <><Rating value={host.rating} count={host.reviewCount} className="font-medium" /> · </> : isNewHost(host) ? "New host · " : ""}{sessionsLabel(host.sessionsCompleted)}</dd></div>
-                  <div className="flex items-center gap-2.5"><CalendarDays className="size-4 shrink-0" /><dt className="sr-only">Member since</dt><dd>Hosting since {formatDate(host.memberSince, { month: "long", year: "numeric" })}</dd></div>
+                  <div className="flex items-center gap-2.5"><MapPin className="size-4 shrink-0" /><dt className="sr-only">{tr("Location")}</dt><dd>{[host.region || host.city, countryLabel(host.country, locale)].filter(Boolean).join(", ")} · {tzLabel(host.timezone)}</dd></div>
+                  <div className="flex items-center gap-2.5"><Languages className="size-4 shrink-0" /><dt className="sr-only">{tr("Languages")}</dt><dd>{tr("Speaks {languages}", { languages: host.languages.map((l) => tr(l)).join(", ") })}</dd></div>
+                  <div className="flex items-center gap-2.5"><Star className="size-4 shrink-0" /><dt className="sr-only">{tr("Rating")}</dt><dd>{host.reviewCount > 0 ? <><Rating value={host.rating} count={host.reviewCount} className="font-medium" /> · </> : isNewHost(host) ? `${tr("New host")} · ` : ""}{sessions}</dd></div>
+                  <div className="flex items-center gap-2.5"><CalendarDays className="size-4 shrink-0" /><dt className="sr-only">{tr("Member since")}</dt><dd>{tr("Hosting since {date}", { date: formatDate(host.memberSince, { month: "long", year: "numeric" }, intlLocale(locale)) })}</dd></div>
                 </dl>
                 <div className="mt-6"><ProfileActions name={host.firstName} hostId={host.id} live={host.dataSource === "supabase"} /></div>
               </div>
             </div>
 
             {/* About */}
-            <Section title={`About ${host.firstName}`}>
+            <Section title={tr("About {name}", { name: host.firstName })}>
               <p className="max-w-2xl text-pretty text-[17px] leading-relaxed">{host.bio}</p>
             </Section>
 
-            <Section title="Interests">
+            <Section title={tr("Interests")}>
               <ul className="flex flex-wrap gap-2">
                 {host.interests.map((i) => (
-                  <li key={i} className="rounded-full bg-blush px-4 py-2 text-sm font-medium">{i}</li>
+                  <li key={i} className="rounded-full bg-blush px-4 py-2 text-sm font-medium">{tr(i)}</li>
                 ))}
               </ul>
             </Section>
 
-            <Section title="What you can do together">
+            <Section title={tr("What you can do together")}>
               <div className="grid gap-3 sm:grid-cols-2">
                 {host.categories.map((c) => {
                   const cat = categoryById(c);
@@ -101,8 +110,8 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
                     <div key={c} className="flex gap-4 rounded-2xl bg-white p-4 ring-1 ring-line">
                       <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-lilac"><Icon className="size-5" strokeWidth={1.75} /></span>
                       <div>
-                        <p className="font-semibold">{cat.title}</p>
-                        <p className="text-sm text-plum-soft">{cat.description}</p>
+                        <p className="font-semibold">{tr(cat.title)}</p>
+                        <p className="text-sm text-plum-soft">{tr(cat.description)}</p>
                       </div>
                     </div>
                   );
@@ -110,14 +119,14 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
               </div>
             </Section>
 
-            <Section title="Session options">
+            <Section title={tr("Session options")}>
               <div className="grid gap-3 sm:grid-cols-3">
-                <Option icon={<Mic className="size-5" />} title="Audio" body="Voice-only, relaxed and camera-free." available={host.formats.includes("audio")} />
-                <Option icon={<Video className="size-5" />} title="Video" body="Face to face, +$1 per 30 min." available={host.formats.includes("video")} />
-                <Option icon={<Globe2 className="size-5" />} title="20 · 30 · 60 min" body="Pick the length that suits you." available />
+                <Option icon={<Mic className="size-5" />} title={tr("Audio")} body={tr("Voice-only, relaxed and camera-free. {price}/min.", { price: formatBRL(host.priceAudioCents) })} available={host.formats.includes("audio")} notOffered={tr("not offered")} />
+                <Option icon={<Video className="size-5" />} title={tr("Video")} body={host.priceVideoCents ? tr("Face to face. {price}/min.", { price: formatBRL(host.priceVideoCents) }) : tr("Face to face.")} available={host.formats.includes("video")} notOffered={tr("not offered")} />
+                <Option icon={<Globe2 className="size-5" />} title={tr("Per-second billing")} body={tr("Talk as long as you like. You only pay while you're both connected.")} available notOffered="" />
               </div>
               <div className="mt-5 overflow-x-auto rounded-2xl bg-white p-4 ring-1 ring-line">
-                <p className="mb-3 text-sm font-semibold">Usual weekly availability <span className="font-normal text-plum-soft">({tzLabel(host.timezone)})</span></p>
+                <p className="mb-3 text-sm font-semibold">{tr("Usual weekly availability")} <span className="font-normal text-plum-soft">({tzLabel(host.timezone)})</span></p>
                 <div className="grid min-w-[480px] grid-cols-7 gap-2 text-center text-xs">
                   {days.map((d, i) => (
                     <div key={d}>
@@ -138,11 +147,11 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
             </Section>
 
             {/* Reviews */}
-            <Section title="Reviews">
+            <Section title={tr("Reviews")}>
               {reviews.length === 0 ? (
                 <div className="rounded-2xl bg-blush/70 p-6 text-sm text-plum-soft">
-                  <p className="font-semibold text-plum">No reviews yet</p>
-                  <p className="mt-1">Reviews can only be left after a completed session — be the first.</p>
+                  <p className="font-semibold text-plum">{tr("No reviews yet")}</p>
+                  <p className="mt-1">{tr("Reviews can only be left after a completed session — be the first.")}</p>
                 </div>
               ) : (<>
               <div className="mb-5 flex items-center gap-4 rounded-2xl bg-blush p-5">
@@ -154,7 +163,7 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
                     ))}
                   </div>
                   <p className="mt-1 text-sm text-plum-soft">
-                    {host.reviewCount} {host.reviewCount === 1 ? "review" : "reviews"} from completed sessions{host.isSample && " (sample)"}
+                    {tr(host.reviewCount === 1 ? "{n} review from completed sessions" : "{n} reviews from completed sessions", { n: host.reviewCount })}{host.isSample && ` (${tr("sample")})`}
                   </p>
                 </div>
               </div>
@@ -166,7 +175,7 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
                         <span className="grid size-9 place-items-center rounded-full bg-lilac text-sm font-bold">{r.author[0]}</span>
                         <div>
                           <p className="text-sm font-semibold">{r.author}</p>
-                          <p className="text-xs text-plum-soft">{r.country} · {formatDate(r.date)}</p>
+                          <p className="text-xs text-plum-soft">{countryLabel(r.country, locale)} · {formatDate(r.date, undefined, intlLocale(locale))}</p>
                         </div>
                       </div>
                       <Rating value={r.rating} />
@@ -181,8 +190,8 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
             <div className="mt-10 flex items-start gap-3 rounded-2xl bg-lilac/50 p-4 text-sm text-plum">
               <Info className="mt-0.5 size-4 shrink-0" />
               <p>
-                HUMI sessions are social conversations between adults. Hosts don&apos;t provide therapy, medical, legal or financial advice, and sessions aren&apos;t dating.
-                Read our <Link href="/guidelines" className="font-semibold underline underline-offset-2">community guidelines</Link>.
+                {tr("HUMI sessions are social conversations between adults. Hosts don't provide therapy, medical, legal or financial advice, and sessions aren't dating.")}{" "}
+                {tr("Read our")} <Link href="/guidelines" className="font-semibold underline underline-offset-2">{tr("community guidelines")}</Link>.
               </p>
             </div>
           </div>
@@ -194,7 +203,7 @@ export default async function HostProfilePage({ params }: { params: Promise<{ id
 
         {similar.length > 0 && (
           <section className="mt-20">
-            <h2 className="text-2xl font-bold tracking-tight">You might also like</h2>
+            <h2 className="text-2xl font-bold tracking-tight">{tr("You might also like")}</h2>
             <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {similar.map((h) => <HostCard key={h.id} host={h} />)}
             </div>
@@ -214,11 +223,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Option({ icon, title, body, available }: { icon: React.ReactNode; title: string; body: string; available: boolean }) {
+function Option({ icon, title, body, available, notOffered }: { icon: React.ReactNode; title: string; body: string; available: boolean; notOffered: string }) {
   return (
     <div className={`rounded-2xl bg-white p-4 ring-1 ring-line ${available ? "" : "opacity-45"}`}>
       <span className="grid size-10 place-items-center rounded-xl bg-blush">{icon}</span>
-      <p className="mt-3 font-semibold">{title}{!available && " · not offered"}</p>
+      <p className="mt-3 font-semibold">{title}{!available && ` · ${notOffered}`}</p>
       <p className="text-sm text-plum-soft">{body}</p>
     </div>
   );

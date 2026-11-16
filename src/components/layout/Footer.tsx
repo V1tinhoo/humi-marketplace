@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/primitives";
-import { t } from "@/i18n";
+import { getDict, getT } from "@/i18n/server";
+import { LanguageSwitcher } from "@/i18n/client";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 
-const columns = [
+const columnsFor = (t: Dictionary) => [
   {
     title: t.footer.product,
     links: [
@@ -51,7 +53,10 @@ const socials = [
   },
 ];
 
-export function Footer() {
+export async function Footer() {
+  const t = await getDict();
+  const tr = await getT();
+  const columns = columnsFor(t);
   return (
     <footer className="border-t border-line bg-white">
       <Container className="py-14 lg:py-20">
@@ -64,7 +69,7 @@ export function Footer() {
                 <a
                   key={s.label}
                   href="#"
-                  aria-label={`HUMI on ${s.label} (coming soon)`}
+                  aria-label={tr("HUMI on {network} (coming soon)", { network: s.label })}
                   className="grid size-10 place-items-center rounded-full bg-cream text-plum ring-1 ring-line transition hover:-translate-y-0.5 hover:bg-lilac"
                 >
                   <svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden>
@@ -94,7 +99,10 @@ export function Footer() {
 
         <div className="mt-14 flex flex-col gap-4 border-t border-line pt-8 text-xs leading-relaxed text-plum-soft lg:flex-row lg:items-start lg:justify-between">
           <p className="max-w-3xl">{t.footer.disclaimer}</p>
-          <p className="shrink-0">© {new Date().getFullYear()} HUMI · Beta preview · 18+ only</p>
+          <div className="flex shrink-0 flex-col items-start gap-3 lg:items-end">
+            <LanguageSwitcher />
+            <p>© {new Date().getFullYear()} HUMI · {tr("Beta preview · 18+ only")}</p>
+          </div>
         </div>
       </Container>
     </footer>

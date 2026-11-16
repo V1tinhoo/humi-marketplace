@@ -10,16 +10,17 @@ import { Logo } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import { t } from "@/i18n";
+import { LanguageSwitcher, useDict, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
-const links = [
-  { href: "/explore", label: t.nav.explore },
-  { href: "/how-it-works", label: t.nav.howItWorks },
-  { href: "/become-a-host", label: t.nav.becomeHost },
-];
-
 export function Navbar() {
+  const t = useDict();
+  const tr = useT();
+  const links = [
+    { href: "/explore", label: t.nav.explore },
+    { href: "/how-it-works", label: t.nav.howItWorks },
+    { href: "/become-a-host", label: t.nav.becomeHost },
+  ];
   const pathname = usePathname();
   const router = useRouter();
   const { user, ready, signOut, mode } = useAuth();
@@ -101,6 +102,7 @@ export function Navbar() {
         </ul>
 
         <div className="hidden items-center gap-2 md:flex">
+          <div className="mr-1 hidden lg:block"><LanguageSwitcher /></div>
           {!ready ? (
             <div className="h-10 w-40" />
           ) : user ? (
@@ -109,17 +111,17 @@ export function Navbar() {
               <Link
                 href="/dashboard?tab=finance"
                 className="flex items-center gap-2 rounded-full bg-lilac px-3.5 py-2 text-sm font-semibold ring-1 ring-lavender/60 transition hover:bg-lavender"
-                title={earnings ? `Earned ${formatBRL(earnings.total)} · ${formatBRL(earnings.pending)} pending` : "Earnings"}
+                title={earnings ? tr("Earned {total} · {pending} pending", { total: formatBRL(earnings.total), pending: formatBRL(earnings.pending) }) : tr("Earnings")}
               >
                 <TrendingUp className="size-4 text-plum" />
-                {earnings === null ? <span className="skeleton h-4 w-14 rounded" /> : <>{formatBRL(earnings.total)} <span className="font-medium text-plum-soft">earned</span></>}
+                {earnings === null ? <span className="skeleton h-4 w-14 rounded" /> : <>{formatBRL(earnings.total)} <span className="font-medium text-plum-soft">{tr("earned")}</span></>}
               </Link>
             )}
             {mode === "supabase" && !isHostUser && (
               <Link
                 href="/wallet"
                 className="flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold ring-1 ring-line transition hover:bg-blush hover:ring-lavender"
-                aria-label={`Wallet balance ${balance === null ? "" : formatBRL(balance)}`}
+                aria-label={tr("Wallet balance {amount}", { amount: balance === null ? "" : formatBRL(balance) })}
               >
                 <WalletIcon className="size-4 text-plum-soft" />
                 {balance === null ? <span className="skeleton h-4 w-14 rounded" /> : formatBRL(balance)}
@@ -143,14 +145,14 @@ export function Navbar() {
                 >
                   <div className="px-3 py-2">
                     <p className="truncate text-sm font-semibold">{user.name}</p>
-                    <p className="truncate text-xs text-plum-soft">{user.role === "host" ? "Host account" : "Member account"}{mode === "demo" ? " (demo)" : ""}</p>
+                    <p className="truncate text-xs text-plum-soft">{user.role === "host" ? tr("Host account") : tr("Member account")}{mode === "demo" ? " (demo)" : ""}</p>
                   </div>
                   <MenuLink href={dashboardHref} icon={<LayoutDashboard className="size-4" />}>
                     {user.role === "host" ? t.nav.dashboard : t.nav.account}
                   </MenuLink>
                   {mode === "supabase" && (
                     <MenuLink href="/wallet" icon={<WalletIcon className="size-4" />}>
-                      Wallet{balance !== null ? ` · ${formatBRL(balance)}` : ""}
+                      {tr("Wallet")}{balance !== null ? ` · ${formatBRL(balance)}` : ""}
                     </MenuLink>
                   )}
                   {user.role === "host" && (
@@ -184,7 +186,7 @@ export function Navbar() {
         <button
           className="grid size-10 place-items-center rounded-full text-plum transition hover:bg-lilac/60 md:hidden"
           onClick={() => setOpen((o) => !o)}
-          aria-label={open ? "Close menu" : "Open menu"}
+          aria-label={open ? tr("Close menu") : tr("Open menu")}
           aria-expanded={open}
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -221,13 +223,14 @@ export function Navbar() {
             {user && mode === "supabase" && (
               <li>
                 <Link href="/wallet" className="flex items-center justify-between border-b border-line py-4 text-2xl font-semibold tracking-tight">
-                  Wallet
+                  {tr("Wallet")}
                   <span className="text-base font-semibold text-plum-soft">{balance === null ? "" : formatBRL(balance)}</span>
                 </Link>
               </li>
             )}
           </ul>
           <div className="mt-auto flex flex-col gap-3">
+            <LanguageSwitcher className="self-center" />
             {user ? (
               <button onClick={handleSignOut} className="h-12 rounded-full bg-white font-semibold ring-1 ring-line">
                 {t.nav.logout}

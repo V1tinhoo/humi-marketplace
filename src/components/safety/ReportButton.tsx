@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReportDialog, type ReportTarget } from "./ReportDialog";
+import { useT } from "@/i18n/client";
 
 /**
  * A "Report" trigger + dialog. Variants:
@@ -27,12 +28,13 @@ export function ReportButton({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const label = `Report ${name}`;
+  const tr = useT();
+  const label = tr("Report {name}", { name });
   return (
     <>
       {variant === "link" ? (
         <button type="button" onClick={() => setOpen(true)} className={cn("inline-flex items-center gap-1 text-xs font-semibold text-plum-soft hover:text-[#a3324a]", className)}>
-          <Flag className="size-3" /> Report
+          <Flag className="size-3" /> {tr("Report")}
         </button>
       ) : (
         <button

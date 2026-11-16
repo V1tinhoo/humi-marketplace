@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useT } from "@/i18n/client";
 
 const KEY = "humi.betabar.dismissed";
 
 export function BetaBar() {
+  const tr = useT();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -20,8 +22,8 @@ export function BetaBar() {
 
   return (
     <div className="relative bg-plum px-10 py-2 text-center text-xs font-medium text-white sm:text-[13px]">
-      <span className="mr-2 rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider">Beta preview</span>
-      Profiles, bookings and payments on this site are demonstrations. No real sessions or charges.
+      <span className="mr-2 rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider">{tr("Beta preview")}</span>
+      {tr("Profiles, bookings and payments on this site are demonstrations. No real sessions or charges.")}
       <button
         onClick={() => {
           setVisible(false);
@@ -30,7 +32,7 @@ export function BetaBar() {
           } catch {}
         }}
         className="absolute right-2 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-white/80 hover:bg-white/10 hover:text-white"
-        aria-label="Dismiss beta notice"
+        aria-label={tr("Dismiss beta notice")}
       >
         <X className="size-3.5" />
       </button>

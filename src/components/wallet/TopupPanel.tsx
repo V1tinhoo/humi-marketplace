@@ -8,6 +8,7 @@ import { FormError } from "@/components/ui/FormError";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { formatBRL, parseReaisToCents } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 const PRESETS = [2000, 5000, 10000, 20000];
 
@@ -17,6 +18,7 @@ const PRESETS = [2000, 5000, 10000, 20000];
  */
 export function TopupPanel({ popup = false, onStarted }: { popup?: boolean; onStarted?: () => void }) {
   const router = useRouter();
+  const tr = useT();
   const [amount, setAmount] = useState(5000);
   const [custom, setCustom] = useState("");
   const [method, setMethod] = useState<"pix" | "card">("pix");
@@ -42,8 +44,8 @@ export function TopupPanel({ popup = false, onStarted }: { popup?: boolean; onSt
 
   const start = async () => {
     setError(null);
-    if (!value) return setError("Enter a valid amount, e.g. 35 or 35,50.");
-    if (value < limits.min || value > limits.max) return setError(`Choose between ${formatBRL(limits.min)} and ${formatBRL(limits.max)}.`);
+    if (!value) return setError(tr("Enter a valid amount, e.g. 35 or 35,50."));
+    if (value < limits.min || value > limits.max) return setError(tr("Choose between {min} and {max}.", { min: formatBRL(limits.min), max: formatBRL(limits.max) }));
     setLoading(true);
     // Open the window synchronously (inside the click) so pop-up blockers allow it.
     const win = popup ? window.open("about:blank", "humi-topup", "width=480,height=720") : null;
@@ -65,7 +67,7 @@ export function TopupPanel({ popup = false, onStarted }: { popup?: boolean; onSt
 
   return (
     <div>
-      <p className="text-sm font-semibold">How much?</p>
+      <p className="text-sm font-semibold">{tr("How much?")}</p>
       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {PRESETS.map((p) => (
           <button
@@ -86,7 +88,7 @@ export function TopupPanel({ popup = false, onStarted }: { popup?: boolean; onSt
         ))}
       </div>
       <label className="mt-3 block">
-        <span className="text-xs font-medium text-plum-soft">Or another amount ({formatBRL(limits.min)} – {formatBRL(limits.max)})</span>
+        <span className="text-xs font-medium text-plum-soft">{tr("Or another amount ({min} – {max})", { min: formatBRL(limits.min), max: formatBRL(limits.max) })}</span>
         <div className="mt-1 flex h-11 items-center rounded-xl bg-white px-3 ring-1 ring-line focus-within:ring-2 focus-within:ring-lavender">
           <span className="text-sm font-semibold text-plum-soft">R$</span>
           <input
@@ -95,12 +97,12 @@ export function TopupPanel({ popup = false, onStarted }: { popup?: boolean; onSt
             onChange={(e) => setCustom(e.target.value)}
             placeholder="0,00"
             className="h-full flex-1 bg-transparent px-2 text-[15px] outline-none"
-            aria-label="Custom amount in reais"
+            aria-label={tr("Custom amount in reais")}
           />
         </div>
       </label>
 
-      <p className="mt-4 text-sm font-semibold">Pay with</p>
+      <p className="mt-4 text-sm font-semibold">{tr("Pay with")}</p>
       <div className="mt-2 grid grid-cols-2 gap-2">
         {([
           ["pix", "Pix", QrCode],
@@ -116,16 +118,16 @@ export function TopupPanel({ popup = false, onStarted }: { popup?: boolean; onSt
               method === id ? "bg-lilac ring-2 ring-lavender" : "bg-cream ring-1 ring-line hover:ring-lavender",
             )}
           >
-            <Icon className="size-4" /> {label}
+            <Icon className="size-4" /> {tr(label)}
           </button>
         ))}
       </div>
 
       <FormError message={error} className="mt-3" />
       <Button size="lg" className="mt-4 w-full" onClick={start} loading={loading} disabled={!value}>
-        Add {value ? formatBRL(value) : ""}
+        {tr("Add {amount}", { amount: value ? formatBRL(value) : "" })}
       </Button>
-      <p className="mt-2 text-center text-xs text-plum-soft">Your balance is updated only after the payment is confirmed. HUMI never stores card details.</p>
+      <p className="mt-2 text-center text-xs text-plum-soft">{tr("Your balance is updated only after the payment is confirmed. HUMI never stores card details.")}</p>
     </div>
   );
 }

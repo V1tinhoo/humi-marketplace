@@ -8,9 +8,11 @@ import { Container, SectionHeading } from "@/components/ui/primitives";
 import { CategoryPills } from "@/components/explore/CategoryPills";
 import { featuredHostIds } from "@/data/hosts";
 import type { CategoryId, Host } from "@/types";
-import { t } from "@/i18n";
+import { useDict, useT } from "@/i18n/client";
 
 export function FeaturedHosts({ hosts }: { hosts: Host[] }) {
+  const t = useDict();
+  const tr = useT();
   const [category, setCategory] = useState<CategoryId | "all">("all");
   const featured = useMemo(() => {
     const curated = featuredHostIds.map((id) => hosts.find((h) => h.id === id)).filter((h): h is Host => !!h);
@@ -44,7 +46,7 @@ export function FeaturedHosts({ hosts }: { hosts: Host[] }) {
         </div>
         {list.length === 0 ? (
           <p className="mt-8 rounded-[var(--radius-card)] bg-cream p-8 text-center text-sm text-plum-soft ring-1 ring-line">
-            No featured hosts in this category yet. <Link href={`/explore?category=${category}`} className="font-semibold text-plum underline underline-offset-2">Browse all</Link>
+            {tr("No featured hosts in this category yet.")} <Link href={`/explore?category=${category}`} className="font-semibold text-plum underline underline-offset-2">{tr("Browse all")}</Link>
           </p>
         ) : (
           <div key={category} className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

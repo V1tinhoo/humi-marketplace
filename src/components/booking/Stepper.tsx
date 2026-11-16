@@ -1,9 +1,13 @@
+"use client";
+
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 export function Stepper({ steps, current, onJump }: { steps: string[]; current: number; onJump: (i: number) => void }) {
+  const tr = useT();
   return (
-    <ol className="flex items-center gap-2" aria-label="Booking progress">
+    <ol className="flex items-center gap-2" aria-label={tr("Booking progress")}>
       {steps.map((label, i) => {
         const done = i < current;
         const active = i === current;

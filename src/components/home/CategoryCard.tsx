@@ -30,7 +30,7 @@ export const categoryVisuals: Record<CategoryId, { icon: LucideIcon; surface: st
   },
 };
 
-export function CategoryCard({ category, index }: { category: Category; index: number }) {
+export function CategoryCard({ category, index, browseLabel = "Browse hosts" }: { category: Category; index: number; browseLabel?: string }) {
   const v = categoryVisuals[category.id];
   const dark = category.id === "meet";
   const Icon = v.icon;
@@ -51,7 +51,7 @@ export function CategoryCard({ category, index }: { category: Category; index: n
         <h3 className={cn("text-xl font-bold tracking-tight", dark ? "text-white" : "text-plum")}>{category.title}</h3>
         <p className={cn("mt-2 text-sm leading-relaxed", dark ? "text-white/80" : "text-plum-soft")}>{category.description}</p>
         <span className={cn("mt-5 inline-flex items-center gap-1.5 text-sm font-semibold", dark ? "text-white" : "text-plum")}>
-          Browse hosts
+          {browseLabel}
           <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
         </span>
       </div>

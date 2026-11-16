@@ -7,6 +7,7 @@ import { Container, Skeleton } from "@/components/ui/primitives";
 import { formatBRL } from "@/lib/money";
 import { notifyWalletChanged } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 type PixInfo = {
   status: string;
@@ -19,6 +20,7 @@ const POLL_MS = 4000;
 /** Pay a top-up with Pix on HUMI: QR code + copy-and-paste code, confirmed automatically. */
 export default function PixPage({ params }: { params: Promise<{ topupId: string }> }) {
   const { topupId } = use(params);
+  const tr = useT();
   const [info, setInfo] = useState<PixInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -76,8 +78,8 @@ export default function PixPage({ params }: { params: Promise<{ topupId: string 
         {error ? (
           <>
             <XCircle className="mx-auto size-10 text-[#a3324a]" />
-            <h1 className="mt-3 text-xl font-bold">{error}</h1>
-            <Link href="/wallet" className="mt-5 inline-block font-semibold text-plum underline underline-offset-4">Back to wallet</Link>
+            <h1 className="mt-3 text-xl font-bold">{tr(error)}</h1>
+            <Link href="/wallet" className="mt-5 inline-block font-semibold text-plum underline underline-offset-4">{tr("Back to wallet")}</Link>
           </>
         ) : !info ? (
           <>
@@ -88,44 +90,44 @@ export default function PixPage({ params }: { params: Promise<{ topupId: string 
         ) : paid ? (
           <>
             <CheckCircle2 className="mx-auto size-12 text-online" />
-            <h1 className="mt-3 text-2xl font-extrabold">Payment confirmed!</h1>
-            <p className="mt-1 text-plum-soft">{formatBRL(info.amountCents)} was added to your balance.</p>
+            <h1 className="mt-3 text-2xl font-extrabold">{tr("Payment confirmed!")}</h1>
+            <p className="mt-1 text-plum-soft">{tr("{amount} was added to your balance.", { amount: formatBRL(info.amountCents) })}</p>
             {inPopup ? (
               <button onClick={() => window.close()} className="mt-6 h-11 w-full rounded-full bg-plum font-semibold text-white hover:bg-plum-deep">
-                Close and go back to the call
+                {tr("Close and go back to the call")}
               </button>
             ) : (
               <Link href="/wallet" className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-full bg-plum font-semibold text-white hover:bg-plum-deep">
-                Go to wallet
+                {tr("Go to wallet")}
               </Link>
             )}
           </>
         ) : expired || !info.pix ? (
           <>
             <Clock className="mx-auto size-10 text-plum-soft" />
-            <h1 className="mt-3 text-xl font-bold">This Pix has expired</h1>
-            <p className="mt-1 text-sm text-plum-soft">Nothing was charged. Start a new top-up to get a new code.</p>
+            <h1 className="mt-3 text-xl font-bold">{tr("This Pix has expired")}</h1>
+            <p className="mt-1 text-sm text-plum-soft">{tr("Nothing was charged. Start a new top-up to get a new code.")}</p>
             <Link href="/wallet" className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-plum font-semibold text-white hover:bg-plum-deep">
-              Back to wallet
+              {tr("Back to wallet")}
             </Link>
           </>
         ) : (
           <>
-            <p className="flex items-center justify-center gap-2 text-sm font-semibold text-plum-soft"><QrCode className="size-4" /> Pay with Pix</p>
+            <p className="flex items-center justify-center gap-2 text-sm font-semibold text-plum-soft"><QrCode className="size-4" /> {tr("Pay with Pix")}</p>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight">{formatBRL(info.amountCents)}</h1>
 
             {info.pix.qrCodeBase64 && (
               // eslint-disable-next-line @next/next/no-img-element -- data URI from Mercado Pago
               <img
                 src={`data:image/png;base64,${info.pix.qrCodeBase64}`}
-                alt="Pix QR code"
+                alt={tr("Pix QR code")}
                 className="mx-auto mt-5 size-56 rounded-2xl ring-1 ring-line"
               />
             )}
-            <p className="mt-3 text-sm text-plum-soft">Open your bank app, choose <b>Pix → Pay with QR code</b> and scan it.</p>
+            <p className="mt-3 text-sm text-plum-soft">{tr("Open your bank app, choose Pix → Pay with QR code and scan it.")}</p>
 
             <div className="mt-5 text-left">
-              <label htmlFor="pix-code" className="text-xs font-semibold text-plum-soft">Or use Pix Copy and Paste</label>
+              <label htmlFor="pix-code" className="text-xs font-semibold text-plum-soft">{tr("Or use Pix Copy and Paste")}</label>
               <textarea
                 id="pix-code"
                 readOnly
@@ -142,15 +144,15 @@ export default function PixPage({ params }: { params: Promise<{ topupId: string 
                 )}
               >
                 {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                {copied ? "Code copied" : "Copy Pix code"}
+                {copied ? tr("Code copied") : tr("Copy Pix code")}
               </button>
             </div>
 
             <div className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-blush px-3 py-2.5 text-sm text-plum">
               <Loader2 className="size-4 animate-spin" />
-              Waiting for payment{left != null && ` · expires in ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`}
+              {tr("Waiting for payment")}{left != null && ` · ${tr("expires in {time}", { time: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` })}`}
             </div>
-            <p className="mt-3 text-xs text-plum-soft">This page updates by itself when the payment is confirmed. Your balance changes only after confirmation.</p>
+            <p className="mt-3 text-xs text-plum-soft">{tr("This page updates by itself when the payment is confirmed. Your balance changes only after confirmation.")}</p>
           </>
         )}
       </div>

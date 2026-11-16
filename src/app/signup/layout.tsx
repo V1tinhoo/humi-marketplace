@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Sign up" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("Sign up") };
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;

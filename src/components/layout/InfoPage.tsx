@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/primitives";
+import { getT } from "@/i18n/server";
 
-export function InfoPage({
+export async function InfoPage({
   eyebrow,
   title,
   intro,
@@ -14,6 +15,7 @@ export function InfoPage({
   placeholder?: boolean;
   children: ReactNode;
 }) {
+  const tr = await getT();
   return (
     <div>
       <div className="bg-gradient-to-b from-blush to-cream">
@@ -23,7 +25,7 @@ export function InfoPage({
           <p className="mt-5 text-lg text-plum-soft">{intro}</p>
           {placeholder && (
             <p className="mt-6 inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-plum ring-1 ring-line">
-              Draft placeholder — to be reviewed by legal counsel before launch
+              {tr("Draft placeholder — to be reviewed by legal counsel before launch")}
             </p>
           )}
         </Container>

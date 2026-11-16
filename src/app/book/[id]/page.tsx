@@ -6,6 +6,7 @@ import { getHostById } from "@/lib/data/hosts";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 import { Container, Skeleton } from "@/components/ui/primitives";
+import { getT } from "@/i18n/server";
 
 export const revalidate = 30; // keeps "Online now" close to real time
 
@@ -15,7 +16,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { data: host } = await getHostById((await params).id);
-  return { title: host ? `Book ${host.firstName}` : "Booking" };
+  const tr = await getT();
+  return { title: host ? tr("Book {name}", { name: host.firstName }) : tr("Booking") };
 }
 
 export default async function BookPage({ params }: { params: Promise<{ id: string }> }) {

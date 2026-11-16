@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Star } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 import { isOptimizableImage as isOptimizable } from "@/lib/images";
+import { useT } from "@/i18n/client";
 
 export function HostPhoto({
   src,
@@ -20,6 +21,7 @@ export function HostPhoto({
   priority?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
+  const tr = useT();
   return (
     <div className={cn("relative overflow-hidden bg-lilac", className)}>
       {/* Shimmer sits underneath and is simply covered once the photo paints. */}
@@ -27,7 +29,7 @@ export function HostPhoto({
       {!failed && src ? (
         <Image
           src={src}
-          alt={`Portrait of ${name}`}
+          alt={tr("Portrait of {name}", { name })}
           fill
           sizes={sizes}
           priority={priority}
@@ -45,17 +47,19 @@ export function HostPhoto({
 }
 
 export function Rating({ value, count, className }: { value: number; count?: number; className?: string }) {
+  const tr = useT();
   return (
     <span className={cn("inline-flex items-center gap-1 text-sm font-semibold text-plum", className)}>
       <Star className="size-3.5 fill-plum text-plum" aria-hidden />
       {value.toFixed(1)}
       {count !== undefined && <span className="font-normal text-plum-soft">({count})</span>}
-      <span className="sr-only">out of 5 stars</span>
+      <span className="sr-only">{tr("out of 5 stars")}</span>
     </span>
   );
 }
 
 export function PresenceBadge({ online, className }: { online: boolean; className?: string }) {
+  const tr = useT();
   return (
     <span
       className={cn(
@@ -68,7 +72,7 @@ export function PresenceBadge({ online, className }: { online: boolean; classNam
         {online && <span className="absolute inline-flex size-full animate-ping rounded-full bg-online opacity-60" />}
         <span className={cn("relative inline-flex size-2 rounded-full", online ? "bg-online" : "bg-plum-soft/50")} />
       </span>
-      {online ? "Online" : "Offline"}
+      {online ? tr("Online") : tr("Offline")}
     </span>
   );
 }

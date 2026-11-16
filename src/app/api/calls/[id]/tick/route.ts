@@ -24,8 +24,12 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   }
   // Read back as the user (RLS): the customer sees their balance, the host sees earnings only.
   const { data: call } = await supabase.from("my_calls").select("*").eq("id", id).single();
-  const balance = mine.i_am_host
-    ? null
-    : (await supabase.from("wallets").select("balance_cents").eq("user_id", user.id).maybeSingle()).data?.balance_cents ?? 0;
+  // The customer sees the balance this call is paid from (real money, or test balance for test calls).
+  let balance: number | null = null;
+  if (!mine.i_am_host) {
+    const { data: w } = await supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle();
+    const row = (w ?? {}) as { balance_cents?: number; test_balance_cents?: number };
+    balance = call?.livemode === false && row.test_balance_cents != null ? row.test_balance_cents : (row.balance_cents ?? 0);
+  }
   return json({ call, balanceCents: balance, serverTime: new Date().toISOString() });
 }

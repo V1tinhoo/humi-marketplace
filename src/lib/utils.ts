@@ -15,8 +15,8 @@ export function formatPrice(value: number, opts: { cents?: boolean } = {}) {
   }).format(value);
 }
 
-export function formatDate(iso: string, opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" }) {
-  return new Intl.DateTimeFormat("en-US", opts).format(new Date(iso));
+export function formatDate(iso: string, opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" }, locale = "en-US") {
+  return new Intl.DateTimeFormat(locale, opts).format(new Date(iso));
 }
 
 /* ------------------------------------------------------------------

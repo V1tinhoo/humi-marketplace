@@ -14,6 +14,7 @@ import { formatBRL, formatDuration } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { ReportButton } from "@/components/safety/ReportButton";
 import type { MyCallRow, TopupStatus, WalletTopupRow, WalletTransactionRow } from "@/types/database";
+import { useIntlLocale, useT } from "@/i18n/client";
 
 export default function WalletPage() {
   return (
@@ -33,7 +34,9 @@ const TOPUP_STATUS: Record<TopupStatus, { label: string; cls: string }> = {
 
 function WalletView() {
   const { user, mode } = useAuth();
-  const { balance } = useWalletBalance();
+  const tr = useT();
+  const loc = useIntlLocale();
+  const { balance, realBalance, testBalance } = useWalletBalance();
   const supabase = getSupabaseBrowserClient();
   const [tab, setTab] = useState<"activity" | "topups" | "calls">("activity");
   const [tx, setTx] = useState<WalletTransactionRow[] | null>(null);
@@ -59,7 +62,7 @@ function WalletView() {
   if (mode === "demo") {
     return (
       <Container className="max-w-2xl py-16">
-        <DemoNotice>The wallet needs Supabase. It isn&apos;t available in demo mode.</DemoNotice>
+        <DemoNotice>{tr("The wallet needs Supabase. It isn't available in demo mode.")}</DemoNotice>
       </Container>
     );
   }
@@ -87,21 +90,21 @@ function WalletView() {
 
   return (
     <Container className="pb-24 pt-10">
-      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Wallet</h1>
-      <p className="mt-1 text-plum-soft">Add balance once and talk as long as you like. Calls are billed per second.</p>
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{tr("Wallet")}</h1>
+      <p className="mt-1 text-plum-soft">{tr("Add balance once and talk as long as you like. Calls are billed per second.")}</p>
       <TopupReturn />
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_400px]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-gradient-to-br from-lavender via-lilac to-blush p-6 sm:p-8">
             <div aria-hidden className="absolute -right-10 -top-10 size-40 rounded-full border-[24px] border-white/30" />
-            <p className="flex items-center gap-2 text-sm font-semibold text-plum"><WalletIcon className="size-4" /> Available balance</p>
+            <p className="flex items-center gap-2 text-sm font-semibold text-plum"><WalletIcon className="size-4" /> {tr("Available balance")}</p>
             <p className="mt-2 text-4xl font-extrabold tracking-tight text-plum-deep sm:text-5xl">
-              {balance === null ? <Skeleton className="h-12 w-48" /> : formatBRL(balance)}
+              {realBalance === null ? <Skeleton className="h-12 w-48" /> : formatBRL(realBalance)}
             </p>
-            {anyTest && (
+            {!!testBalance && (
               <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-plum">
-                <FlaskConical className="size-3.5" /> Includes test balance — not real money
+                <FlaskConical className="size-3.5" /> {tr("+ {amount} test balance — not real money", { amount: formatBRL(testBalance) })}
               </p>
             )}
           </div>
@@ -115,7 +118,7 @@ function WalletView() {
               ] as const).map(([id, label]) => (
                 <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
                   className={cn("relative px-4 py-3 text-sm font-semibold transition", tab === id ? "text-plum" : "text-plum-soft hover:text-plum")}>
-                  {label}
+                  {tr(label)}
                   {tab === id && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-plum" />}
                 </button>
               ))}
@@ -123,7 +126,7 @@ function WalletView() {
 
             <div className="mt-4">
               {tab === "activity" && (
-                <List loading={!activity} empty="No activity yet. Add balance to start talking.">
+                <List loading={!activity} empty={tr("No activity yet. Add balance to start talking.")}>
                   {(activity ?? []).map((t) => (
                     <li key={t.id} className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-line">
                       <span className={cn("grid size-10 shrink-0 place-items-center rounded-xl", t.amount_cents > 0 ? "bg-online/10 text-online" : "bg-blush text-plum")}>
@@ -131,16 +134,16 @@ function WalletView() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-semibold">
-                          {t.kind === "call_charge" ? `Call${hostName(t.reference_id) ? ` with ${hostName(t.reference_id)}` : ""}` : t.description}
-                          {!t.livemode && <span className="ml-2 rounded-full bg-lilac px-1.5 py-0.5 text-[10px] font-semibold uppercase">test</span>}
+                          {t.kind === "call_charge" ? (hostName(t.reference_id) ? tr("Call with {name}", { name: hostName(t.reference_id) }) : tr("Call")) : tr(t.description ?? "")}
+                          {!t.livemode && <span className="ml-2 rounded-full bg-lilac px-1.5 py-0.5 text-[10px] font-semibold uppercase">{tr("test")}</span>}
                         </p>
-                        <p className="text-xs text-plum-soft">{new Date(t.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</p>
+                        <p className="text-xs text-plum-soft">{new Date(t.created_at).toLocaleString(loc, { dateStyle: "medium", timeStyle: "short" })}</p>
                       </div>
                       <div className="text-right">
                         <p className={cn("font-bold", t.amount_cents > 0 ? "text-online" : "text-plum")}>
                           {t.amount_cents > 0 ? "+" : "−"}{formatBRL(Math.abs(t.amount_cents))}
                         </p>
-                        <p className="text-xs text-plum-soft">Balance {formatBRL(t.balance_after_cents)}</p>
+                        <p className="text-xs text-plum-soft">{tr("Balance {amount}", { amount: formatBRL(t.balance_after_cents) })}</p>
                       </div>
                     </li>
                   ))}
@@ -148,7 +151,7 @@ function WalletView() {
               )}
 
               {tab === "calls" && (
-                <List loading={!calls} empty="No calls yet.">
+                <List loading={!calls} empty={tr("No calls yet.")}>
                   {(calls ?? []).map((c) => {
                     const Icon = c.call_type === "video" ? Video : Mic;
                     return (
@@ -158,8 +161,8 @@ function WalletView() {
                           <p className="truncate font-semibold">{c.host_name}</p>
                           <p className="flex items-center gap-1.5 text-xs text-plum-soft">
                             <Clock className="size-3" /> {formatDuration(c.billed_seconds)} · {formatBRL(c.price_cents_per_minute)}/min ·{" "}
-                            {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                            {c.status === "failed" && " · didn't connect (not charged)"}
+                            {new Date(c.created_at).toLocaleDateString(loc, { month: "short", day: "numeric" })}
+                            {c.status === "failed" && ` · ${tr("didn't connect (not charged)")}`}
                           </p>
                         </div>
                         <div className="text-right">
@@ -173,22 +176,22 @@ function WalletView() {
               )}
 
               {tab === "topups" && (
-                <List loading={!topups} empty="No top-ups yet.">
+                <List loading={!topups} empty={tr("No top-ups yet.")}>
                   {(topups ?? []).map((t) => (
                     <li key={t.id} className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-line">
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold">
-                          {formatBRL(t.amount_cents)} <span className="font-normal text-plum-soft">· {t.method === "card" ? "Card" : "Pix"}</span>
-                          {!t.livemode && <span className="ml-2 rounded-full bg-lilac px-1.5 py-0.5 text-[10px] font-semibold uppercase">test</span>}
+                          {formatBRL(t.amount_cents)} <span className="font-normal text-plum-soft">· {t.method === "card" ? tr("Card") : "Pix"}</span>
+                          {!t.livemode && <span className="ml-2 rounded-full bg-lilac px-1.5 py-0.5 text-[10px] font-semibold uppercase">{tr("test")}</span>}
                         </p>
                         <p className="text-xs text-plum-soft">
-                          {new Date(t.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+                          {new Date(t.created_at).toLocaleString(loc, { dateStyle: "medium", timeStyle: "short" })}
                           {t.provider_payment_id && <> · ID {t.provider_payment_id.slice(0, 16)}…</>}
                         </p>
                       </div>
-                      <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", TOPUP_STATUS[t.status].cls)}>{TOPUP_STATUS[t.status].label}</span>
-                      {t.status === "pending" && !t.livemode && (
-                        <Link href={`/wallet/test-checkout/${t.id}`} className="text-xs font-semibold text-plum underline underline-offset-2">Continue</Link>
+                      <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", TOPUP_STATUS[t.status].cls)}>{tr(TOPUP_STATUS[t.status].label)}</span>
+                      {t.status === "pending" && (t.provider === "test" || (t.method === "pix" && t.provider.startsWith("mercadopago"))) && (
+                        <Link href={t.provider === "test" ? `/wallet/test-checkout/${t.id}` : `/wallet/pix/${t.id}`} className="text-xs font-semibold text-plum underline underline-offset-2">{tr("Continue")}</Link>
                       )}
                     </li>
                   ))}
@@ -200,12 +203,14 @@ function WalletView() {
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-[var(--radius-card)] bg-white p-6 shadow-soft ring-1 ring-line">
-            <h2 className="text-lg font-bold">Add balance</h2>
+            <h2 className="text-lg font-bold">{tr("Add balance")}</h2>
             <div className="mt-4"><TopupPanel /></div>
           </div>
-          <DemoNotice className="mt-4">
-            <strong>Test mode.</strong> No payment provider is connected yet, so top-ups use a test checkout and add <em>test balance</em>. No real money is charged.
-          </DemoNotice>
+          {anyTest && (
+            <DemoNotice className="mt-4">
+              <strong>{tr("Test mode.")}</strong> {tr("Payments are in test mode: top-ups add test balance and no real money is charged.")}
+            </DemoNotice>
+          )}
         </aside>
       </div>
     </Container>

@@ -28,6 +28,8 @@ import { Toggle } from "@/components/explore/ExploreView";
 import { Stepper } from "./Stepper";
 import { useAuth } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useIntlLocale, useLocale, useT } from "@/i18n/client";
+import { countryLabel } from "@/data/places";
 
 const STEPS = ["Format", "Duration", "Time", "Review", "Checkout"];
 
@@ -56,6 +58,10 @@ export function BookingFlow({ host }: { host: Host }) {
   const params = useSearchParams();
   const pathname = usePathname();
   const { user, mode, addBooking } = useAuth();
+  const tr = useT();
+  const loc = useIntlLocale();
+  const locale = useLocale();
+  const dz = (d: Date, z: string, o?: Intl.DateTimeFormatOptions) => describeInZone(d, z, o, loc);
   const live = mode === "supabase" && host.dataSource === "supabase";
 
   const pFormat = params.get("format") as SessionFormat | null;
@@ -213,11 +219,11 @@ export function BookingFlow({ host }: { host: Host }) {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:gap-12">
       <div className="min-w-0">
-        <Stepper steps={STEPS} current={step} onJump={setStep} />
+        <Stepper steps={STEPS.map((s) => tr(s))} current={step} onJump={setStep} />
 
         <div key={step} className="mt-10 animate-fade-up">
           {step === 0 && (
-            <StepShell title="How would you like to connect?" subtitle="You can always switch next time.">
+            <StepShell title={tr("How would you like to connect?")} subtitle={tr("You can always switch next time.")}>
               <div className="grid gap-4 sm:grid-cols-2">
                 {(["audio", "video"] as SessionFormat[]).map((f) => {
                   const available = host.formats.includes(f);
@@ -227,11 +233,11 @@ export function BookingFlow({ host }: { host: Host }) {
                       <span className={cn("grid size-12 place-items-center rounded-2xl", format === f ? "bg-plum text-white" : "bg-lilac")}>
                         <Icon className="size-6" strokeWidth={1.75} />
                       </span>
-                      <p className="mt-5 text-lg font-bold capitalize">{f} call</p>
+                      <p className="mt-5 text-lg font-bold">{f === "audio" ? tr("Audio call") : tr("Video call")}</p>
                       <p className="mt-1 text-sm text-plum-soft">
-                        {f === "audio" ? "Just voices. Relaxed, easy, no camera needed." : "See each other face to face. Adds $1 per 30 min."}
+                        {f === "audio" ? tr("Just voices. Relaxed, easy, no camera needed.") : tr("See each other face to face.")} {available && `${formatBRL(hostPriceCents(host, f))}/min`}
                       </p>
-                      {!available && <p className="mt-3 text-xs font-semibold">Not offered by {host.firstName}</p>}
+                      {!available && <p className="mt-3 text-xs font-semibold">{tr("Not offered by {name}", { name: host.firstName })}</p>}
                     </ChoiceCard>
                   );
                 })}
@@ -240,16 +246,16 @@ export function BookingFlow({ host }: { host: Host }) {
           )}
 
           {step === 1 && (
-            <StepShell title="How long would you like to talk?" subtitle="Most first sessions are 30 minutes.">
+            <StepShell title={tr("How long would you like to talk?")} subtitle={tr("Most first sessions are 30 minutes.")}>
               <div className="grid gap-4 sm:grid-cols-3">
                 {DURATIONS.map((d) => (
                   <ChoiceCard key={d} selected={duration === d} onClick={() => setDuration(d)}>
                     <Clock className="size-5 text-plum-soft" />
                     <p className="mt-4 text-3xl font-extrabold tracking-tight">{d}<span className="text-base font-semibold text-plum-soft"> min</span></p>
-                    <p className="mt-1 text-sm text-plum-soft">{d === 20 ? "A quick hello" : d === 30 ? "The sweet spot" : "Settle in properly"}</p>
+                    <p className="mt-1 text-sm text-plum-soft">{d === 20 ? tr("A quick hello") : d === 30 ? tr("The sweet spot") : tr("Settle in properly")}</p>
                     <p className="mt-4 text-lg font-bold">≈ {formatBRL(hostPriceCents(host, format ?? "audio") * d)}</p>
-                    <p className="text-xs text-plum-soft">{formatBRL(hostPriceCents(host, format ?? "audio"))}/min, billed per second</p>
-                    {d === 30 && <span className="absolute right-4 top-4 rounded-full bg-blush px-2 py-0.5 text-[11px] font-semibold">Popular</span>}
+                    <p className="text-xs text-plum-soft">{formatBRL(hostPriceCents(host, format ?? "audio"))}/min, {tr("billed per second")}</p>
+                    {d === 30 && <span className="absolute right-4 top-4 rounded-full bg-blush px-2 py-0.5 text-[11px] font-semibold">{tr("Popular")}</span>}
                   </ChoiceCard>
                 ))}
               </div>
@@ -258,37 +264,37 @@ export function BookingFlow({ host }: { host: Host }) {
 
           {step === 2 && (
             <StepShell
-              title="Pick a time"
+              title={tr("Pick a time")}
               subtitle={
                 // Zone names are only known in the browser; render them after the slots load (no hydration mismatch).
                 !days
-                  ? "Loading available times…"
+                  ? tr("Loading available times…")
                   : sameZone
-                  ? `Times shown in your time zone (${viewerName}).${host.isSample ? " Sample availability." : ""}`
-                  : `Times shown in your time zone (${viewerName}). The small time is ${host.firstName}'s local time (${tzName}).${host.isSample ? " Sample availability." : ""}`
+                  ? tr("Times shown in your time zone ({zone}).", { zone: viewerName }) + (host.isSample ? ` ${tr("Sample availability.")}` : "")
+                  : tr("Times shown in your time zone ({zone}). The small time is {name}'s local time ({hostZone}).", { zone: viewerName, name: host.firstName, hostZone: tzName }) + (host.isSample ? ` ${tr("Sample availability.")}` : "")
               }
             >
               {slotsError ? (
                 <div role="alert" className="rounded-2xl bg-white p-8 text-center ring-1 ring-line">
                   <AlertTriangle className="mx-auto size-6 text-[#a3324a]" />
-                  <p className="mt-3 font-semibold">{slotsError}</p>
-                  <Button variant="secondary" size="sm" className="mt-4" onClick={loadSlots}><RefreshCw className="size-4" /> Retry</Button>
+                  <p className="mt-3 font-semibold">{tr(slotsError)}</p>
+                  <Button variant="secondary" size="sm" className="mt-4" onClick={loadSlots}><RefreshCw className="size-4" /> {tr("Retry")}</Button>
                 </div>
               ) : !days ? (
-                <div className="flex gap-2" aria-label="Loading availability">
+                <div className="flex gap-2" aria-label={tr("Loading availability")}>
                   {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-[76px] w-[84px] shrink-0 rounded-2xl" />)}
                 </div>
               ) : days.every((d) => d.slots.length === 0) ? (
                 <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-line">
                   <CalendarCheck2 className="mx-auto size-6 text-plum-soft" />
-                  <p className="mt-3 font-semibold">No open times this week</p>
-                  <p className="text-sm text-plum-soft">{host.firstName} hasn&apos;t opened any slots for the next 7 days. Check back soon.</p>
+                  <p className="mt-3 font-semibold">{tr("No open times this week")}</p>
+                  <p className="text-sm text-plum-soft">{tr("{name} hasn't opened any slots for the next 7 days. Check back soon.", { name: host.firstName })}</p>
                 </div>
               ) : (<>
               <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
                 {days.map((d, i) => {
                   const open = d.slots.filter((s) => !s.taken).length;
-                  const label = new Date(Date.UTC(d.year, d.month - 1, d.day)).toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+                  const label = new Date(Date.UTC(d.year, d.month - 1, d.day)).toLocaleDateString(loc, { weekday: "short", timeZone: "UTC" });
                   return (
                     <button
                       key={i}
@@ -298,9 +304,9 @@ export function BookingFlow({ host }: { host: Host }) {
                         dayIndex === i ? "bg-plum text-white" : "bg-white ring-1 ring-line hover:ring-lavender",
                       )}
                     >
-                      <span className="text-xs font-medium opacity-80">{i === 0 ? "Today" : label}</span>
+                      <span className="text-xs font-medium opacity-80">{i === 0 ? tr("Today") : label}</span>
                       <span className="text-xl font-bold">{d.day}</span>
-                      <span className={cn("mt-0.5 text-[11px]", dayIndex === i ? "text-white/75" : "text-plum-soft")}>{open ? `${open} open` : "Full"}</span>
+                      <span className={cn("mt-0.5 text-[11px]", dayIndex === i ? "text-white/75" : "text-plum-soft")}>{open ? tr("{n} open", { n: open }) : tr("Full")}</span>
                     </button>
                   );
                 })}
@@ -309,8 +315,8 @@ export function BookingFlow({ host }: { host: Host }) {
                 {days[dayIndex].slots.length === 0 ? (
                   <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-line">
                     <CalendarCheck2 className="mx-auto size-6 text-plum-soft" />
-                    <p className="mt-3 font-semibold">No times left on this day</p>
-                    <p className="text-sm text-plum-soft">Try another day — {host.firstName} may have more openings later in the week.</p>
+                    <p className="mt-3 font-semibold">{tr("No times left on this day")}</p>
+                    <p className="text-sm text-plum-soft">{tr("Try another day — {name} may have more openings later in the week.", { name: host.firstName })}</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -319,13 +325,13 @@ export function BookingFlow({ host }: { host: Host }) {
                       const mine = timeInZone(s.start, viewerTz);
                       const theirs = timeInZone(s.start, tz);
                       const shift = dayShift(s.start, viewerTz, tz);
-                      const shiftShort = shift > 0 ? " +1d" : shift < 0 ? " −1d" : "";
+                      const shiftShort = shift > 0 ? ` +1${tr("d")}` : shift < 0 ? ` −1${tr("d")}` : "";
                       return (
                         <button
                           key={iso}
                           disabled={s.taken}
                           onClick={() => setSlot(iso)}
-                          aria-label={`${mine} your time${sameZone ? "" : `, ${theirs}${shift > 0 ? " next day" : shift < 0 ? " previous day" : ""} for ${host.firstName}`}${s.taken ? ", already booked" : ""}`}
+                          aria-label={`${mine} ${tr("your time")}${sameZone ? "" : `, ${theirs}${shift > 0 ? ` ${tr("next day")}` : shift < 0 ? ` ${tr("previous day")}` : ""} ${tr("for {name}", { name: host.firstName })}`}${s.taken ? `, ${tr("already booked")}` : ""}`}
                           className={cn(
                             "flex flex-col items-center rounded-xl py-2.5 text-sm font-semibold transition",
                             slot === iso ? "bg-lavender text-plum-deep ring-2 ring-plum" : "bg-white ring-1 ring-line hover:ring-lavender",
@@ -346,10 +352,10 @@ export function BookingFlow({ host }: { host: Host }) {
                 )}
                 {slot && (
                   <p className="mt-4 text-sm text-plum-soft">
-                    You: <strong className="text-plum">{describeInZone(new Date(slot), viewerTz)}</strong>
+                    {tr("You")}: <strong className="text-plum">{dz(new Date(slot), viewerTz)}</strong>
                     {!sameZone && (
                       <>
-                        {" "}· {host.firstName}: <strong className="text-plum">{describeInZone(new Date(slot), tz)}</strong>
+                        {" "}· {host.firstName}: <strong className="text-plum">{dz(new Date(slot), tz)}</strong>
                       </>
                     )}
                   </p>
@@ -360,20 +366,21 @@ export function BookingFlow({ host }: { host: Host }) {
           )}
 
           {step === 3 && price && format && duration && slot && (
-            <StepShell title="Review your session" subtitle="Double-check the details before checkout.">
+            <StepShell title={tr("Review your session")} subtitle={tr("Double-check the details before checkout.")}>
               <div className="divide-y divide-line rounded-2xl bg-white ring-1 ring-line">
-                <Row label="Host" value={`${host.firstName}${host.country ? ` · ${host.country}` : ""}`} />
-                <Row label="Format" value={<span className="capitalize">{format}</span>} onEdit={() => setStep(0)} />
-                <Row label="Duration" value={`${duration} minutes`} onEdit={() => setStep(1)} />
+                <Row editLabel={tr("Edit")} label={tr("Host")} value={`${host.firstName}${host.country ? ` · ${countryLabel(host.country, locale)}` : ""}`} />
+                <Row editLabel={tr("Edit")} label={tr("Format")} value={format === "audio" ? tr("Audio") : tr("Video")} onEdit={() => setStep(0)} />
+                <Row editLabel={tr("Edit")} label={tr("Duration")} value={tr("{n} minutes", { n: duration })} onEdit={() => setStep(1)} />
                 <Row
-                  label="Date & time"
+                  editLabel={tr("Edit")}
+                  label={tr("Date & time")}
                   value={
                     <>
-                      {describeInZone(new Date(slot), viewerTz, { weekday: "long", month: "long", day: "numeric" })}{" "}
-                      <span className="font-normal text-plum-soft">your time</span>
+                      {dz(new Date(slot), viewerTz, { weekday: "long", month: "long", day: "numeric" })}{" "}
+                      <span className="font-normal text-plum-soft">{tr("your time")}</span>
                       {!sameZone && (
                         <span className="mt-0.5 block text-sm font-medium text-plum-soft">
-                          {describeInZone(new Date(slot), tz, { weekday: "long", month: "long", day: "numeric" })} for {host.firstName}
+                          {dz(new Date(slot), tz, { weekday: "long", month: "long", day: "numeric" })} {tr("for {name}", { name: host.firstName })}
                         </span>
                       )}
                     </>
@@ -382,48 +389,47 @@ export function BookingFlow({ host }: { host: Host }) {
                 />
               </div>
               <div className="mt-6 rounded-2xl bg-blush/70 p-5 text-sm">
-                <p className="font-semibold">Cancellation policy (draft)</p>
+                <p className="font-semibold">{tr("Cancellation policy (draft)")}</p>
                 <p className="mt-1 text-plum-soft">
-                  Free cancellation up to 12 hours before the session. Later cancellations may be partially refunded. Final policy will be published before launch.{" "}
-                  <Link href="/help#cancellation" className="font-semibold text-plum underline underline-offset-2">Learn more</Link>
+                  {tr("Free cancellation up to 12 hours before the session. Calls are only charged for the time you're connected. Final policy will be published before launch.")}{" "}
+                  <Link href="/help#cancellation" className="font-semibold text-plum underline underline-offset-2">{tr("Learn more")}</Link>
                 </p>
               </div>
               <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-line">
                 <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[#493C62]" />
                 <span className="text-sm">
-                  I&apos;m 18 or older and agree to the{" "}
-                  <Link href="/guidelines" className="font-semibold underline underline-offset-2">community guidelines</Link>. I understand HUMI sessions are social
-                  conversations — not therapy, dating, or professional advice.
+                  {tr("I'm 18 or older and agree to the")}{" "}
+                  <Link href="/guidelines" className="font-semibold underline underline-offset-2">{tr("community guidelines")}</Link>. {tr("I understand HUMI sessions are social conversations — not therapy, dating, or professional advice.")}
                 </span>
               </label>
             </StepShell>
           )}
 
           {step === 4 && price && (
-            <StepShell title="Confirm your reservation" subtitle="Reserving a time is free.">
+            <StepShell title={tr("Confirm your reservation")} subtitle={tr("Reserving a time is free.")}>
               <DemoNotice>
-                <strong>Nothing is charged now.</strong>{" "}
+                <strong>{tr("Nothing is charged now.")}</strong>{" "}
                 {live
-                  ? `${host.firstName} will be asked to confirm. At the time of the call you pay ${formatBRL(price.perMin)}/min from your wallet, per second, only while you're both connected.`
-                  : "Demo mode: the reservation is saved in this browser only."}
+                  ? tr("{name} will be asked to confirm. At the time of the call you pay {price}/min from your wallet, per second, only while you're both connected.", { name: host.firstName, price: formatBRL(price.perMin) })
+                  : tr("Demo mode: the reservation is saved in this browser only.")}
               </DemoNotice>
 
               <div className="mt-6 rounded-2xl bg-white p-5 ring-1 ring-line">
                 <div className="flex items-center gap-3">
                   <span className="grid size-11 place-items-center rounded-xl bg-lilac"><CreditCard className="size-5" /></span>
                   <div>
-                    <p className="font-semibold">Pay as you talk</p>
-                    <p className="text-sm text-plum-soft">From your HUMI wallet during the call · R$ 0,00 now</p>
+                    <p className="font-semibold">{tr("Pay as you talk")}</p>
+                    <p className="text-sm text-plum-soft">{tr("From your HUMI wallet during the call · R$ 0,00 now")}</p>
                   </div>
                   <Lock className="ml-auto size-4 text-plum-soft" />
                 </div>
                 {!live && (
                   <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4">
                     <span>
-                      <span className="block text-sm font-semibold">Simulate a failed payment</span>
-                      <span className="block text-xs text-plum-soft">Useful for testing the error state</span>
+                      <span className="block text-sm font-semibold">{tr("Simulate a failed payment")}</span>
+                      <span className="block text-xs text-plum-soft">{tr("Useful for testing the error state")}</span>
                     </span>
-                    <Toggle checked={simulateFailure} onChange={setSimulateFailure} label="Simulate a failed payment" />
+                    <Toggle checked={simulateFailure} onChange={setSimulateFailure} label={tr("Simulate a failed payment")} />
                   </div>
                 )}
               </div>
@@ -432,27 +438,27 @@ export function BookingFlow({ host }: { host: Host }) {
                 <div className="mt-5 flex items-center gap-3 rounded-2xl bg-lilac/50 p-4 text-sm">
                   <LogIn className="size-5 shrink-0" />
                   <p className="flex-1">
-                    {live ? "Log in or create an account to send your booking request." : "You're browsing as a guest. Log in to keep this demo booking in your account."}
+                    {live ? tr("Log in or create an account to send your booking request.") : tr("You're browsing as a guest. Log in to keep this demo booking in your account.")}
                   </p>
-                  <ButtonLink href={loginHref} size="sm" variant="dark">Log in</ButtonLink>
+                  <ButtonLink href={loginHref} size="sm" variant="dark">{tr("Log in")}</ButtonLink>
                 </div>
               )}
 
               {state === "error" && errorMsg && (
                 <div role="alert" className="mt-5 flex animate-fade-up items-start gap-3 rounded-2xl bg-[#fde8ea] p-4 text-sm text-[#7a2232]">
                   <AlertTriangle className="mt-0.5 size-5 shrink-0" />
-                  <p>{errorMsg}</p>
+                  <p>{tr(errorMsg)}</p>
                 </div>
               )}
 
               <Button size="lg" className="mt-6 w-full" loading={state === "processing"} onClick={confirm} disabled={live && !user}>
                 {state === "processing"
-                  ? "Saving…"
+                  ? tr("Saving…")
                   : state === "error"
-                    ? (<><RefreshCw className="size-4" /> Try again</>)
+                    ? (<><RefreshCw className="size-4" /> {tr("Try again")}</>)
                     : live
-                      ? "Request reservation · R$ 0,00 now"
-                      : "Confirm demo reservation"}
+                      ? tr("Request reservation · R$ 0,00 now")
+                      : tr("Confirm demo reservation")}
               </Button>
             </StepShell>
           )}
@@ -462,21 +468,21 @@ export function BookingFlow({ host }: { host: Host }) {
           <div className="mt-10 flex items-center justify-between gap-3">
             {step > 0 ? (
               <Button variant="ghost" onClick={() => setStep(step - 1)}>
-                <ArrowLeft className="size-4" /> Back
+                <ArrowLeft className="size-4" /> {tr("Back")}
               </Button>
             ) : (
               <ButtonLink href={`/hosts/${host.id}`} variant="ghost">
-                <ArrowLeft className="size-4" /> Profile
+                <ArrowLeft className="size-4" /> {tr("Profile")}
               </ButtonLink>
             )}
             <Button onClick={() => setStep(step + 1)} disabled={!canNext} size="lg">
-              {step === 3 ? "Continue to checkout" : "Continue"} <ArrowRight className="size-4" />
+              {step === 3 ? tr("Continue to checkout") : tr("Continue")} <ArrowRight className="size-4" />
             </Button>
           </div>
         )}
         {step === 4 && state !== "processing" && (
           <Button variant="ghost" className="mt-4" onClick={() => { setStep(3); setState("idle"); setErrorMsg(null); }}>
-            <ArrowLeft className="size-4" /> Back to review
+            <ArrowLeft className="size-4" /> {tr("Back to review")}
           </Button>
         )}
       </div>
@@ -488,25 +494,25 @@ export function BookingFlow({ host }: { host: Host }) {
             <HostPhoto src={host.photo} name={host.firstName} sizes="64px" className="size-16 shrink-0 rounded-2xl" />
             <div>
               <p className="text-lg font-bold">{host.firstName}{host.age ? `, ${host.age}` : ""}</p>
-              <p className="text-sm text-plum-soft">{host.country}</p>
+              <p className="text-sm text-plum-soft">{countryLabel(host.country, locale)}</p>
               {host.reviewCount > 0 && <Rating value={host.rating} count={host.reviewCount} className="mt-0.5" />}
             </div>
           </div>
           <dl className="mt-5 space-y-2.5 border-t border-line pt-5 text-sm">
-            <SummaryRow label="Format" value={format ? <span className="capitalize">{format}</span> : "—"} />
-            <SummaryRow label="Duration" value={duration ? `${duration} min` : "—"} />
-            <SummaryRow label="When (your time)" value={slot ? describeInZone(new Date(slot), viewerTz, { month: "short", day: "numeric" }) : "—"} />
+            <SummaryRow label={tr("Format")} value={format ? (format === "audio" ? tr("Audio") : tr("Video")) : "—"} />
+            <SummaryRow label={tr("Duration")} value={duration ? `${duration} min` : "—"} />
+            <SummaryRow label={tr("When (your time)")} value={slot ? dz(new Date(slot), viewerTz, { month: "short", day: "numeric" }) : "—"} />
           </dl>
           <dl className="mt-5 space-y-2.5 border-t border-line pt-5 text-sm">
-            <SummaryRow label="Price" value={price ? `${formatBRL(price.perMin)}/min` : "—"} />
-            <SummaryRow label={duration ? `Estimate for ${duration} min` : "Estimate"} value={price ? `≈ ${formatBRL(price.estimate)}` : "—"} />
+            <SummaryRow label={tr("Price")} value={price ? `${formatBRL(price.perMin)}/min` : "—"} />
+            <SummaryRow label={duration ? tr("Estimate for {n} min", { n: duration }) : tr("Estimate")} value={price ? `≈ ${formatBRL(price.estimate)}` : "—"} />
             <div className="flex items-center justify-between border-t border-line pt-3 text-base font-bold">
-              <dt>Due now</dt>
+              <dt>{tr("Due now")}</dt>
               <dd>R$ 0,00</dd>
             </div>
           </dl>
           <p className="mt-4 rounded-xl bg-cream p-3 text-xs text-plum-soft">
-            Prices in R$. Reserving is free; calls are billed per second from your wallet, calculated by HUMI&apos;s server.
+            {tr("Prices in R$. Reserving is free; calls are billed per second from your wallet, calculated by HUMI's server.")}
           </p>
         </div>
       </aside>
@@ -543,7 +549,7 @@ function ChoiceCard({ selected, disabled, onClick, children }: { selected: boole
   );
 }
 
-function Row({ label, value, onEdit }: { label: string; value: React.ReactNode; onEdit?: () => void }) {
+function Row({ label, value, onEdit, editLabel }: { label: string; value: React.ReactNode; onEdit?: () => void; editLabel: string }) {
   return (
     <div className="flex items-center justify-between gap-4 px-5 py-4">
       <div>
@@ -551,7 +557,7 @@ function Row({ label, value, onEdit }: { label: string; value: React.ReactNode; 
         <p className="mt-0.5 font-semibold">{value}</p>
       </div>
       {onEdit && (
-        <button onClick={onEdit} className="text-sm font-semibold text-plum underline-offset-4 hover:underline">Edit</button>
+        <button onClick={onEdit} className="text-sm font-semibold text-plum underline-offset-4 hover:underline">{editLabel}</button>
       )}
     </div>
   );
@@ -567,10 +573,12 @@ function SummaryRow({ label, value }: { label: string; value: React.ReactNode })
 }
 
 function SuccessView({ c, host }: { c: Confirmation; host: Host }) {
+  const tr = useT();
+  const loc = useIntlLocale();
   const start = new Date(c.start);
   const viewerTz = viewerTimeZone();
-  const yours = describeInZone(start, viewerTz, { weekday: "long", month: "short", day: "numeric" });
-  const theirs = describeInZone(start, host.timezone, { weekday: "long", month: "short", day: "numeric" });
+  const yours = describeInZone(start, viewerTz, { weekday: "long", month: "short", day: "numeric" }, loc);
+  const theirs = describeInZone(start, host.timezone, { weekday: "long", month: "short", day: "numeric" }, loc);
   return (
     <div className="mx-auto max-w-xl animate-fade-up text-center">
       <div className="relative mx-auto grid size-20 place-items-center">
@@ -579,15 +587,15 @@ function SuccessView({ c, host }: { c: Confirmation; host: Host }) {
           <CheckCircle2 className="size-9" strokeWidth={1.75} />
         </span>
       </div>
-      <h1 className="mt-8 text-3xl font-extrabold tracking-tight sm:text-4xl">{c.live ? "Booking request sent" : "Demo booking confirmed"}</h1>
+      <h1 className="mt-8 text-3xl font-extrabold tracking-tight sm:text-4xl">{c.live ? tr("Booking request sent") : tr("Demo booking confirmed")}</h1>
       <p className="mt-3 text-plum-soft">
         {c.live ? (
           <>
-            {host.firstName} will confirm your session soon — you can follow its status in your account. <strong className="text-plum">No payment was taken</strong>: payments are in test mode.
+            {tr("{name} will confirm your session soon — you can follow its status in your account.", { name: host.firstName })} <strong className="text-plum">{tr("No payment was taken")}</strong>.
           </>
         ) : (
           <>
-            Your session with {host.firstName} is saved in this browser. <strong className="text-plum">No payment was taken</strong> and {host.firstName} is a sample profile, so no real session will happen.
+            {tr("Your session with {name} is saved in this browser.", { name: host.firstName })} <strong className="text-plum">{tr("No payment was taken")}</strong>. {tr("{name} is a sample profile, so no real session will happen.", { name: host.firstName })}
           </>
         )}
       </p>
@@ -595,34 +603,34 @@ function SuccessView({ c, host }: { c: Confirmation; host: Host }) {
         <div className="flex items-center gap-4">
           <HostPhoto src={host.photo} name={host.firstName} sizes="56px" className="size-14 rounded-2xl" />
           <div>
-            <p className="font-bold">{c.duration}-minute {c.format} session</p>
-            <p className="text-sm text-plum-soft">with {host.firstName}</p>
+            <p className="font-bold">{tr(c.format === "audio" ? "{n}-minute audio session" : "{n}-minute video session", { n: c.duration })}</p>
+            <p className="text-sm text-plum-soft">{tr("with {name}", { name: host.firstName })}</p>
           </div>
         </div>
         <div className="mt-5 space-y-1.5 border-t border-line pt-4 text-sm">
           <div className="flex justify-between gap-4">
-            <span className="text-plum-soft">Your time</span>
+            <span className="text-plum-soft">{tr("Your time")}</span>
             <span className="text-right font-semibold">{yours}</span>
           </div>
           {viewerTz !== host.timezone && (
             <div className="flex justify-between gap-4">
-              <span className="text-plum-soft">{host.firstName}&apos;s time</span>
+              <span className="text-plum-soft">{tr("{name}'s time", { name: host.firstName })}</span>
               <span className="text-right font-semibold">{theirs}</span>
             </div>
           )}
         </div>
         <div className="mt-3 flex justify-between border-t border-line pt-3 text-sm">
-          <span className="text-plum-soft">Reference</span>
+          <span className="text-plum-soft">{tr("Reference")}</span>
           <span className="font-mono font-semibold">{c.reference}</span>
         </div>
         <div className="mt-2 flex justify-between text-sm">
-          <span className="text-plum-soft">Due now</span>
-          <span className="font-semibold">R$ 0,00 · then {formatBRL(hostPriceCents(host, c.format))}/min during the call</span>
+          <span className="text-plum-soft">{tr("Due now")}</span>
+          <span className="font-semibold">{tr("R$ 0,00 · then {price}/min during the call", { price: formatBRL(hostPriceCents(host, c.format)) })}</span>
         </div>
       </div>
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-        <ButtonLink href="/account">View my bookings</ButtonLink>
-        <ButtonLink href="/explore" variant="secondary">Keep exploring</ButtonLink>
+        <ButtonLink href="/account">{tr("View my bookings")}</ButtonLink>
+        <ButtonLink href="/explore" variant="secondary">{tr("Keep exploring")}</ButtonLink>
       </div>
     </div>
   );

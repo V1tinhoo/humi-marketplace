@@ -5,6 +5,7 @@ import { CheckCircle2, Loader2, Star } from "lucide-react";
 import { FormError } from "@/components/ui/FormError";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 const LABELS = ["", "Poor", "Not great", "Okay", "Good", "Wonderful"];
 
@@ -13,6 +14,7 @@ const LABELS = ["", "Poor", "Not great", "Okay", "Good", "Wonderful"];
  * hosts rate the guest (private — only HUMI's team sees it).
  */
 export function RateCall({ callId, name, isCustomer }: { callId: string; name: string; isCustomer: boolean }) {
+  const tr = useT();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState("");
@@ -36,10 +38,10 @@ export function RateCall({ callId, name, isCustomer }: { callId: string; name: s
   }, [callId]);
 
   const submit = async () => {
-    if (!rating) return setError("Choose from 1 to 5 stars.");
+    if (!rating) return setError(tr("Choose from 1 to 5 stars."));
     setError(null);
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return setError("Ratings aren’t available right now.");
+    if (!supabase) return setError(tr("Ratings aren't available right now."));
     setState("saving");
     const { error: err } = await supabase.rpc("rate_call", {
       p_call_id: callId,
@@ -58,10 +60,10 @@ export function RateCall({ callId, name, isCustomer }: { callId: string; name: s
     return (
       <div className="mt-6 rounded-[var(--radius-card)] bg-white p-6 ring-1 ring-line">
         <CheckCircle2 className="mx-auto size-8 text-online" />
-        <p className="mt-2 font-bold">Thanks for your rating!</p>
+        <p className="mt-2 font-bold">{tr("Thanks for your rating!")}</p>
         <Stars value={rating} className="mt-2 justify-center" small />
         <button onClick={() => setState("idle")} className="mt-3 text-sm font-semibold text-plum-soft underline-offset-4 hover:text-plum hover:underline">
-          Change rating
+          {tr("Change rating")}
         </button>
       </div>
     );
@@ -70,19 +72,19 @@ export function RateCall({ callId, name, isCustomer }: { callId: string; name: s
   const shown = hover || rating;
   return (
     <div className="mt-6 rounded-[var(--radius-card)] bg-white p-6 text-left ring-1 ring-line">
-      <p className="text-center font-bold">How was your conversation with {name}?</p>
+      <p className="text-center font-bold">{tr("How was your conversation with {name}?", { name })}</p>
       <p className="mt-0.5 text-center text-xs text-plum-soft">
-        {isCustomer ? "Your review appears on their profile with your first name." : "Private — only the HUMI team sees ratings of guests."}
+        {isCustomer ? tr("Your review appears on their profile with your first name.") : tr("Private — only the HUMI team sees ratings of guests.")}
       </p>
 
-      <div className="mt-4 flex justify-center gap-1" role="radiogroup" aria-label="Rating" onMouseLeave={() => setHover(0)}>
+      <div className="mt-4 flex justify-center gap-1" role="radiogroup" aria-label={tr("Rating")} onMouseLeave={() => setHover(0)}>
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
             type="button"
             role="radio"
             aria-checked={rating === n}
-            aria-label={`${n} star${n > 1 ? "s" : ""}`}
+            aria-label={tr(n > 1 ? "{n} stars" : "{n} star", { n })}
             onClick={() => setRating(n)}
             onMouseEnter={() => setHover(n)}
             className="rounded-full p-1 transition hover:scale-110"
@@ -91,14 +93,14 @@ export function RateCall({ callId, name, isCustomer }: { callId: string; name: s
           </button>
         ))}
       </div>
-      <p className="h-5 text-center text-sm font-medium text-plum-soft">{LABELS[shown]}</p>
+      <p className="h-5 text-center text-sm font-medium text-plum-soft">{shown ? tr(LABELS[shown]) : ""}</p>
 
       <textarea
         rows={3}
         maxLength={1000}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder={isCustomer ? "Tell others what the conversation was like (optional)" : "Anything the team should know? (optional)"}
+        placeholder={isCustomer ? tr("Tell others what the conversation was like (optional)") : tr("Anything the team should know? (optional)")}
         className="mt-3 w-full rounded-xl bg-cream p-3 text-sm ring-1 ring-line outline-none focus:ring-2 focus:ring-lavender"
       />
       <FormError message={error} className="mt-2" />
@@ -109,7 +111,7 @@ export function RateCall({ callId, name, isCustomer }: { callId: string; name: s
         className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-plum text-[15px] font-semibold text-white transition hover:bg-plum-deep disabled:opacity-50"
       >
         {state === "saving" && <Loader2 className="size-4 animate-spin" />}
-        Send rating
+        {tr("Send rating")}
       </button>
     </div>
   );
@@ -117,7 +119,7 @@ export function RateCall({ callId, name, isCustomer }: { callId: string; name: s
 
 function Stars({ value, className, small }: { value: number; className?: string; small?: boolean }) {
   return (
-    <div className={cn("flex gap-0.5", className)} aria-label={`${value} of 5 stars`}>
+    <div className={cn("flex gap-0.5", className)} aria-label={`${value} / 5`}>
       {[1, 2, 3, 4, 5].map((n) => (
         <Star key={n} className={cn(small ? "size-5" : "size-7", n <= value ? "fill-[#f5b942] text-[#f5b942]" : "text-line")} />
       ))}

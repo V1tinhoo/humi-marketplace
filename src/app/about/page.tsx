@@ -1,9 +1,43 @@
 import type { Metadata } from "next";
 import { InfoPage } from "@/components/layout/InfoPage";
+import { getLocale } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "About HUMI" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getLocale()) === "pt" ? "Sobre o HUMI" : "About HUMI" };
+}
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  if ((await getLocale()) === "pt") {
+    return (
+      <InfoPage
+        eyebrow="Sobre o HUMI"
+        title="Um pouco mais humano. Um pouco menos sozinho."
+        intro="O HUMI é um marketplace global de conversas reais — com pessoas reais, de todo lugar."
+        placeholder={false}
+      >
+        <section>
+          <h2>Por que estamos criando o HUMI</h2>
+          <p>
+            A internet conectou todo mundo e, de algum jeito, as conversas ficaram mais curtas. Acreditamos que existe espaço para algo simples: a chance de sentar — por
+            áudio ou vídeo — com uma pessoa curiosa e simpática de outro lugar, e simplesmente conversar.
+          </p>
+        </section>
+        <section>
+          <h2>O que você pode fazer no HUMI</h2>
+          <ul>
+            <li>Ter uma conversa tranquila com alguém novo.</li>
+            <li>Jogar junto.</li>
+            <li>Praticar um idioma com um falante nativo.</li>
+            <li>Conhecer outra cultura de perto.</li>
+          </ul>
+        </section>
+        <section>
+          <h2>O que o HUMI não é</h2>
+          <p>O HUMI não é um app de namoro, um serviço de terapia nem uma rede social tradicional. É um lugar para conversas pagas, genuínas e respeitosas entre adultos.</p>
+        </section>
+      </InfoPage>
+    );
+  }
   return (
     <InfoPage
       eyebrow="About HUMI"

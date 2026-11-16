@@ -153,7 +153,7 @@ export type HostPricingRow = {
   currency: string;
   updated_at: string;
 };
-export type WalletRow = { user_id: string; balance_cents: number; currency: string; updated_at: string };
+export type WalletRow = { user_id: string; balance_cents: number; test_balance_cents: number; currency: string; updated_at: string };
 export type WalletTransactionRow = {
   id: number;
   user_id: string;
@@ -229,6 +229,8 @@ export type EarningsSummaryRow = {
   pending_cents: number;
   calls_count: number;
   billed_seconds: number;
+  /** Earnings from test calls (test balance): never paid out. */
+  test_earned_cents?: number;
 };
 export type PayoutAccountRow = { host_id: string; provider: string | null; provider_account_id: string | null; status: string; updated_at: string };
 export type PayoutRecordRow = { id: string; host_id: string; amount_cents: number; status: string; provider: string | null; provider_payout_id: string | null; livemode: boolean; created_at: string; updated_at: string };

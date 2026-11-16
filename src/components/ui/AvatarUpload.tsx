@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, Trash2, Upload } from "lucide-react";
+import { useT } from "@/i18n/client";
 import { useAuth } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn, initials } from "@/lib/utils";
@@ -58,6 +59,7 @@ export function AvatarUpload({
   className?: string;
 }) {
   const { user, mode } = useAuth();
+  const tr = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [current, setCurrent] = useState(value ?? null);
@@ -84,7 +86,7 @@ export function AvatarUpload({
   const handleFile = async (file: File) => {
     setError(null);
     setNotice(null);
-    if (!ACCEPT.includes(file.type)) return setError("Please choose a JPG, PNG or WebP image.");
+    if (!ACCEPT.includes(file.type)) return setError(tr("Please choose a JPG, PNG or WebP image."));
     if (file.size > MAX_INPUT_BYTES) return setError("That file is over 15 MB. Please choose a smaller photo.");
     if (!supabase || !user) return;
 
@@ -108,11 +110,11 @@ export function AvatarUpload({
       }
       await cleanup(path);
       setCurrent(pub.publicUrl);
-      setNotice("Photo updated");
+      setNotice(tr("Photo updated"));
       onChange?.(pub.publicUrl);
     } catch (e) {
       setPreview(null);
-      setError(e instanceof Error ? e.message : "Upload failed. Please try again.");
+      setError(tr(e instanceof Error ? e.message : "Upload failed. Please try again."));
     } finally {
       setState("idle");
       if (inputRef.current) inputRef.current.value = "";
@@ -121,7 +123,7 @@ export function AvatarUpload({
 
   const remove = async () => {
     if (!supabase || !user || !current) return;
-    if (!confirm("Remove your profile photo?")) return;
+    if (!confirm(tr("Remove your profile photo?"))) return;
     setState("working");
     setError(null);
     const { error: dbErr } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
@@ -130,7 +132,7 @@ export function AvatarUpload({
       await cleanup();
       setPreview(null);
       setCurrent(null);
-      setNotice("Photo removed");
+      setNotice(tr("Photo removed"));
       onChange?.(null);
     }
     setState("idle");
@@ -142,7 +144,7 @@ export function AvatarUpload({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={disabled || state === "working"}
-        aria-label={shown ? "Change profile photo" : "Upload profile photo"}
+        aria-label={shown ? tr("Change profile photo") : tr("Upload profile photo")}
         className={cn(
           "group relative shrink-0 overflow-hidden rounded-[1.5rem] transition",
           dim,
@@ -151,7 +153,7 @@ export function AvatarUpload({
         )}
       >
         {shown ? (
-          <Image src={shown} alt={`Photo of ${name}`} fill sizes="112px" className="object-cover" unoptimized={!isOptimizableImage(shown)} />
+          <Image src={shown} alt={tr("Photo of {name}", { name })} fill sizes="112px" className="object-cover" unoptimized={!isOptimizableImage(shown)} />
         ) : (
           <span className="grid size-full place-items-center text-plum-soft">
             {name ? <span className="text-2xl font-bold text-plum/40">{initials(name)}</span> : <Camera className="size-6" />}
@@ -165,12 +167,12 @@ export function AvatarUpload({
       </button>
 
       <div className="min-w-0">
-        <p className="text-sm font-semibold">Profile photo</p>
+        <p className="text-sm font-semibold">{tr("Profile photo")}</p>
         {disabled ? (
-          <p className="mt-1 text-xs text-plum-soft">{mode === "demo" ? "Photo uploads need Supabase (demo mode)." : "Log in to upload a photo."}</p>
+          <p className="mt-1 text-xs text-plum-soft">{mode === "demo" ? tr("Photo uploads need Supabase (demo mode).") : tr("Log in to upload a photo.")}</p>
         ) : (
           <>
-            <p className="mt-1 text-xs text-plum-soft">A clear, friendly photo of your face. JPG, PNG or WebP. We crop it square and remove location data.</p>
+            <p className="mt-1 text-xs text-plum-soft">{tr("A clear, friendly photo of your face. JPG, PNG or WebP. We crop it square and remove location data.")}</p>
             <div className="mt-2.5 flex flex-wrap gap-2">
               <button
                 type="button"
@@ -178,7 +180,7 @@ export function AvatarUpload({
                 disabled={state === "working"}
                 className="inline-flex items-center gap-1.5 rounded-full bg-lilac px-3.5 py-1.5 text-xs font-semibold transition hover:bg-lavender disabled:opacity-50"
               >
-                <Upload className="size-3.5" /> {state === "working" ? "Uploading…" : shown ? "Change photo" : "Upload photo"}
+                <Upload className="size-3.5" /> {state === "working" ? tr("Uploading…") : shown ? tr("Change photo") : tr("Upload photo")}
               </button>
               {current && (
                 <button
@@ -187,7 +189,7 @@ export function AvatarUpload({
                   disabled={state === "working"}
                   className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-plum-soft transition hover:bg-blush hover:text-plum disabled:opacity-50"
                 >
-                  <Trash2 className="size-3.5" /> Remove
+                  <Trash2 className="size-3.5" /> {tr("Remove")}
                 </button>
               )}
             </div>

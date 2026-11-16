@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Host dashboard" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("Host dashboard") };
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;

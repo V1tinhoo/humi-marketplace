@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { FormError } from "@/components/ui/FormError";
 import { PROVIDER_NAMES, useAuth, type OAuthProvider } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 /** Official multi-colour Google "G" mark. */
 function GoogleLogo({ className }: { className?: string }) {
@@ -35,6 +36,7 @@ const LOGOS: Record<OAuthProvider, (p: { className?: string }) => React.ReactEle
  */
 export function SocialAuthButtons({ next, className }: { next?: string; className?: string }) {
   const { signInWithProvider, mode } = useAuth();
+  const tr = useT();
   const [pending, setPending] = useState<OAuthProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,18 +80,18 @@ export function SocialAuthButtons({ next, className }: { next?: string; classNam
               )}
             >
               {busy ? <Loader2 className="size-5 animate-spin text-plum-soft" aria-hidden /> : <Logo className="size-5 shrink-0" />}
-              <span>{busy ? `Redirecting to ${PROVIDER_NAMES[p]}…` : `Continue with ${PROVIDER_NAMES[p]}`}</span>
+              <span>{busy ? tr("Redirecting to {provider}…", { provider: PROVIDER_NAMES[p] }) : tr("Continue with {provider}", { provider: PROVIDER_NAMES[p] })}</span>
             </button>
           );
         })}
       </div>
 
-      {mode === "demo" && <p className="mt-2 text-center text-xs text-plum-soft">Social sign-in works once Supabase is connected.</p>}
+      {mode === "demo" && <p className="mt-2 text-center text-xs text-plum-soft">{tr("Social sign-in works once Supabase is connected.")}</p>}
       <FormError message={error} className="mt-3" />
 
-      <div className="mt-6 flex items-center gap-3" role="separator" aria-label="or continue with email">
+      <div className="mt-6 flex items-center gap-3" role="separator" aria-label={tr("or continue with email")}>
         <span className="h-px flex-1 bg-line" />
-        <span className="text-xs font-medium uppercase tracking-[0.12em] text-plum-soft">or continue with email</span>
+        <span className="text-xs font-medium uppercase tracking-[0.12em] text-plum-soft">{tr("or continue with email")}</span>
         <span className="h-px flex-1 bg-line" />
       </div>
     </div>

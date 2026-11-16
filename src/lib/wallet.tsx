@@ -52,18 +52,24 @@ export function useHostEarnings(enabled: boolean) {
 }
 
 /**
- * The signed-in user's wallet balance (cents), read-only via RLS.
+ * The signed-in user's wallet balance (cents), read-only via RLS. Real money and test
+ * balance are kept apart; `balance` is what can be spent on calls right now.
  * Refreshes on demand (notifyWalletChanged) and every 30 s.
  */
 export function useWalletBalance() {
   const { user, mode } = useAuth();
-  const [balance, setBalance] = useState<number | null>(null);
+  const [pots, setPots] = useState<{ real: number; test: number; testUsable: boolean } | null>(null);
   const supabase = getSupabaseBrowserClient();
 
   const load = useCallback(async () => {
-    if (!supabase || !user) return setBalance(null);
-    const { data } = await supabase.from("wallets").select("balance_cents").eq("user_id", user.id).maybeSingle();
-    setBalance(data?.balance_cents ?? 0);
+    if (!supabase || !user) return setPots(null);
+    // "*" keeps working before/after the real-vs-test split migration.
+    const [{ data }, { data: setting }] = await Promise.all([
+      supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
+      supabase.from("platform_settings").select("value").eq("key", "allow_test_calls").maybeSingle(),
+    ]);
+    const row = (data ?? {}) as { balance_cents?: number; test_balance_cents?: number };
+    setPots({ real: row.balance_cents ?? 0, test: row.test_balance_cents ?? 0, testUsable: setting ? Number(setting.value) === 1 : true });
   }, [supabase, user]);
 
   useEffect(() => {
@@ -85,5 +91,7 @@ export function useWalletBalance() {
     };
   }, [mode, user, load]);
 
-  return { balance, reload: load };
+  // What can be spent on calls right now: real money (+ test balance while test calls are allowed).
+  const balance = pots ? pots.real + (pots.testUsable ? pots.test : 0) : null;
+  return { balance, realBalance: pots?.real ?? null, testBalance: pots?.test ?? null, reload: load };
 }

@@ -1,12 +1,31 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/supabase/config";
+import { COUNTRY_COOKIE, LOCALE_COOKIE, detectLocale, isLocale } from "@/i18n";
 
 /** Routes that require a signed-in user (role checks happen in the page). */
 const PROTECTED = ["/account", "/dashboard", "/become-a-host/apply", "/reset-password", "/wallet", "/call"];
 
+const YEAR = 60 * 60 * 24 * 365;
+
 export async function middleware(request: NextRequest) {
-  if (!isSupabaseConfigured) return NextResponse.next();
+  // Language: picked automatically on the first visit (Brazil → Portuguese, elsewhere → English),
+  // then remembered. The country comes from Vercel's IP geolocation header.
+  const country = request.headers.get("x-vercel-ip-country");
+  const saved = request.cookies.get(LOCALE_COOKIE)?.value;
+  const locale = isLocale(saved) ? saved : detectLocale({ country, acceptLanguage: request.headers.get("accept-language") });
+  if (!isLocale(saved)) request.cookies.set(LOCALE_COOKIE, locale);
+  if (country) request.cookies.set(COUNTRY_COOKIE, country);
+  const finish = (res: NextResponse) => {
+    if (!isLocale(saved)) res.cookies.set(LOCALE_COOKIE, locale, { path: "/", maxAge: YEAR, sameSite: "lax" });
+    if (country) res.cookies.set(COUNTRY_COOKIE, country, { path: "/", maxAge: YEAR, sameSite: "lax" });
+    return res;
+  };
+  return finish(await handle(request));
+}
+
+async function handle(request: NextRequest) {
+  if (!isSupabaseConfigured) return NextResponse.next({ request });
 
   // If the Auth redirect URL isn't whitelisted, Supabase sends email links to the Site URL
   // (e.g. "/?code=…"). Forward those to the callback so the session is still created.

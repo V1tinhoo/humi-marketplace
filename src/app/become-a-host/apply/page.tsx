@@ -16,13 +16,17 @@ import { viewerTimeZone } from "@/lib/time";
 import { FormError } from "@/components/ui/FormError";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { CountrySelect, RegionSelect, TagPicker } from "@/components/ui/ProfileFields";
-import { INTEREST_SUGGESTIONS } from "@/data/places";
+import { INTEREST_SUGGESTIONS, countryFromCode, countryLabel } from "@/data/places";
+import { useCountry, useLocale, useT } from "@/i18n/client";
 
 const STEPS = ["About you", "Interests", "Rates", "Confirm"];
 const LANGS = ["English", "Portuguese", "Spanish", "French", "German", "Italian", "Arabic", "Hindi", "Japanese", "Mandarin"];
 
 export default function HostApplyPage() {
   const { user, mode, refreshProfile } = useAuth();
+  const tr = useT();
+  const locale = useLocale();
+  const geoCountry = countryFromCode(useCountry());
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   // Show the photo already on the profile, if any.
@@ -34,7 +38,8 @@ export default function HostApplyPage() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
     name: user?.name ?? "",
-    country: "",
+    // Pre-filled with the country detected from the visitor's location (they can change it).
+    country: geoCountry ?? "",
     region: "",
     bio: "",
     languages: [] as string[],
@@ -74,7 +79,7 @@ export default function HostApplyPage() {
       setSubmitError(msg);
       setState("idle");
     };
-    if (rpcError || !hostId) return fail(rpcError?.message ?? "Couldn't create your host profile.");
+    if (rpcError || !hostId) return fail(rpcError?.message ?? tr("Couldn't create your host profile."));
     const firstName = data.name.trim().split(" ")[0].slice(0, 40);
     const [a, b] = await Promise.all([
       supabase
@@ -103,15 +108,15 @@ export default function HostApplyPage() {
     return (
       <Container className="max-w-xl py-24 text-center">
         <span className="mx-auto grid size-20 place-items-center rounded-full bg-lavender"><PartyPopper className="size-9" strokeWidth={1.75} /></span>
-        <h1 className="mt-8 text-3xl font-extrabold tracking-tight sm:text-4xl">{mode === "supabase" ? "Your host profile is ready" : "Application received (demo)"}</h1>
+        <h1 className="mt-8 text-3xl font-extrabold tracking-tight sm:text-4xl">{mode === "supabase" ? tr("Your host profile is ready") : tr("Application received (demo)")}</h1>
         <p className="mt-3 text-plum-soft">
           {mode === "supabase"
-            ? `Thanks, ${data.name.split(" ")[0]}! Next: add a photo and your weekly availability in the dashboard, then switch on “Listed in Explore”. Identity verification will be added before launch.`
-            : `Thanks, ${data.name.split(" ")[0]}! In the live product, our team would review your profile and invite you to verify your identity. In this preview, nothing was submitted.`}
+            ? tr("Thanks, {name}! Next: add a photo, your price and your weekly availability in the dashboard, then switch on “Listed in Explore”. Identity verification will be added before launch.", { name: data.name.split(" ")[0] })
+            : tr("Thanks, {name}! In the live product, our team would review your profile and invite you to verify your identity. In this preview, nothing was submitted.", { name: data.name.split(" ")[0] })}
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <ButtonLink href={mode === "supabase" || user?.role === "host" ? "/dashboard" : "/login?role=host&next=/dashboard"}>{mode === "supabase" ? "Go to host dashboard" : "Preview host dashboard"}</ButtonLink>
-          <ButtonLink href="/" variant="secondary">Back home</ButtonLink>
+          <ButtonLink href={mode === "supabase" || user?.role === "host" ? "/dashboard" : "/login?role=host&next=/dashboard"}>{mode === "supabase" ? tr("Go to host dashboard") : tr("Preview host dashboard")}</ButtonLink>
+          <ButtonLink href="/" variant="secondary">{tr("Back home")}</ButtonLink>
         </div>
       </Container>
     );
@@ -119,10 +124,10 @@ export default function HostApplyPage() {
 
   return (
     <Container className="max-w-3xl pb-24 pt-10">
-      <p className="text-sm font-medium text-plum-soft">Host application</p>
-      <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">Let&apos;s set up your host profile</h1>
+      <p className="text-sm font-medium text-plum-soft">{tr("Host application")}</p>
+      <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{tr("Let's set up your host profile")}</h1>
       <div className="mt-8">
-        <Stepper steps={STEPS} current={step} onJump={setStep} />
+        <Stepper steps={STEPS.map((s) => tr(s))} current={step} onJump={setStep} />
       </div>
 
       <div key={step} className="mt-10 animate-fade-up rounded-[var(--radius-card)] bg-white p-6 ring-1 ring-line sm:p-8">
@@ -135,34 +140,34 @@ export default function HostApplyPage() {
                 <span className="grid size-20 shrink-0 place-items-center rounded-2xl border-2 border-dashed border-lavender bg-cream text-plum-soft" aria-hidden>
                   <Camera className="size-6" />
                 </span>
-                <p className="text-sm text-plum-soft">A clear, friendly photo of your face. Photo uploads work once Supabase is connected.</p>
+                <p className="text-sm text-plum-soft">{tr("A clear, friendly photo of your face. Photo uploads work once Supabase is connected.")}</p>
               </div>
             )}
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="First name" name="hname" value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} />
+              <Field label={tr("First name")} name="hname" value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} />
               <CountrySelect value={data.country} onChange={(v) => setData((d) => ({ ...d, country: v, region: v === d.country ? d.region : "" }))} />
               <RegionSelect country={data.country} value={data.region} onChange={(v) => setData((d) => ({ ...d, region: v }))} />
             </div>
             <div>
-              <label htmlFor="hbio" className="text-sm font-semibold">Introduce yourself</label>
+              <label htmlFor="hbio" className="text-sm font-semibold">{tr("Introduce yourself")}</label>
               <textarea
                 id="hbio"
                 rows={4}
                 value={data.bio}
                 onChange={(e) => setData({ ...data, bio: e.target.value })}
-                placeholder="What do you love talking about? What's a conversation with you like?"
+                placeholder={tr("What do you love talking about? What's a conversation with you like?")}
                 className="mt-2 w-full rounded-xl bg-white p-4 text-[15px] ring-1 ring-line outline-none focus:ring-2 focus:ring-lavender"
               />
-              <p className="mt-1 text-xs text-plum-soft">{data.bio.trim().length}/20 characters minimum</p>
+              <p className="mt-1 text-xs text-plum-soft">{tr("{n}/20 characters minimum", { n: data.bio.trim().length })}</p>
             </div>
-            <ChipGroup label="Languages you speak" options={LANGS} selected={data.languages} onToggle={(v) => toggleIn("languages", v)} />
+            <ChipGroup label={tr("Languages you speak")} options={LANGS} display={(o) => tr(o)} selected={data.languages} onToggle={(v) => toggleIn("languages", v)} />
           </div>
         )}
 
         {step === 1 && (
           <div className="space-y-8">
             <div>
-              <p className="text-sm font-semibold">What kind of sessions do you want to offer?</p>
+              <p className="text-sm font-semibold">{tr("What kind of sessions do you want to offer?")}</p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {categories.map((c) => {
                   const Icon = categoryVisuals[c.id].icon;
@@ -177,8 +182,8 @@ export default function HostApplyPage() {
                     >
                       <Icon className="mt-0.5 size-5 shrink-0" />
                       <span>
-                        <span className="block font-semibold">{c.title}</span>
-                        <span className="block text-sm text-plum-soft">{c.description}</span>
+                        <span className="block font-semibold">{tr(c.title)}</span>
+                        <span className="block text-sm text-plum-soft">{tr(c.description)}</span>
                       </span>
                     </button>
                   );
@@ -186,7 +191,7 @@ export default function HostApplyPage() {
               </div>
             </div>
             <TagPicker
-              label="Pick at least two interests"
+              label={tr("Pick at least two interests")}
               value={data.interests}
               onChange={(v) => setData((d) => ({ ...d, interests: v }))}
               suggestions={INTEREST_SUGGESTIONS}
@@ -198,33 +203,32 @@ export default function HostApplyPage() {
         {step === 2 && (
           <div>
             <div className="flex items-baseline justify-between">
-              <label htmlFor="hrate" className="font-semibold">Your rate per 30 minutes</label>
+              <label htmlFor="hrate" className="font-semibold">{tr("Your rate per 30 minutes")}</label>
               <span className="text-4xl font-extrabold">{formatPrice(data.rate)}</span>
             </div>
             <input id="hrate" type="range" min={PLATFORM_LIMITS.minPer30} max={PLATFORM_LIMITS.maxPer30} value={data.rate} onChange={(e) => setData({ ...data, rate: Number(e.target.value) })} className="mt-5 w-full accent-[#493C62]" />
             <div className="mt-1 flex justify-between text-xs text-plum-soft">
               <span>{formatPrice(PLATFORM_LIMITS.minPer30)}</span>
-              <span>{formatPrice(PLATFORM_LIMITS.maxPer30)} limit</span>
+              <span>{tr("{price} limit", { price: formatPrice(PLATFORM_LIMITS.maxPer30) })}</span>
             </div>
-            <p className="mt-6 rounded-2xl bg-blush p-4 text-sm">Most new hosts start between $4 and $7. You can change your rate any time from your dashboard.</p>
+            <p className="mt-6 rounded-2xl bg-blush p-4 text-sm">{tr("You'll set your price per minute in the dashboard, and you can change it any time.")}</p>
           </div>
         )}
 
         {step === 3 && (
           <div className="space-y-4">
             <div className="rounded-2xl bg-cream p-5 text-sm">
-              <p><span className="text-plum-soft">Name:</span> <strong>{data.name}</strong> · {data.country}</p>
-              <p className="mt-1"><span className="text-plum-soft">Languages:</span> {data.languages.join(", ")}</p>
-              <p className="mt-1"><span className="text-plum-soft">Interests:</span> {data.interests.join(", ")}</p>
-              <p className="mt-1"><span className="text-plum-soft">Rate:</span> {formatPrice(data.rate)} / 30 min</p>
+              <p><span className="text-plum-soft">{tr("Name")}:</span> <strong>{data.name}</strong> · {countryLabel(data.country, locale)}</p>
+              <p className="mt-1"><span className="text-plum-soft">{tr("Languages")}:</span> {data.languages.map((l) => tr(l)).join(", ")}</p>
+              <p className="mt-1"><span className="text-plum-soft">{tr("Interests")}:</span> {data.interests.join(", ")}</p>
             </div>
-            <Check label="I'm 18 or older and will complete identity verification before hosting." checked={data.adult} onChange={(v) => setData({ ...data, adult: v })} />
+            <Check label={tr("I'm 18 or older and will complete identity verification before hosting.")} checked={data.adult} onChange={(v) => setData({ ...data, adult: v })} />
             <Check
-              label="I'll follow the community guidelines: no dating, no therapy or professional advice, no sexual content, and no moving sessions off HUMI."
+              label={tr("I'll follow the community guidelines: no dating, no therapy or professional advice, no sexual content, and no moving sessions off HUMI.")}
               checked={data.rules}
               onChange={(v) => setData({ ...data, rules: v })}
             />
-            {mode === "demo" && <DemoNotice>This application isn&apos;t sent anywhere in the beta preview.</DemoNotice>}
+            {mode === "demo" && <DemoNotice>{tr("This application isn't sent anywhere in the beta preview.")}</DemoNotice>}
             <FormError message={submitError} />
           </div>
         )}
@@ -232,19 +236,19 @@ export default function HostApplyPage() {
 
       <div className="mt-8 flex justify-between">
         <Button variant="ghost" onClick={() => setStep(step - 1)} disabled={step === 0}>
-          <ArrowLeft className="size-4" /> Back
+          <ArrowLeft className="size-4" /> {tr("Back")}
         </Button>
         {step < STEPS.length - 1 ? (
-          <Button size="lg" onClick={() => setStep(step + 1)} disabled={!valid}>Continue <ArrowRight className="size-4" /></Button>
+          <Button size="lg" onClick={() => setStep(step + 1)} disabled={!valid}>{tr("Continue")} <ArrowRight className="size-4" /></Button>
         ) : (
-          <Button size="lg" onClick={submit} disabled={!valid} loading={state === "loading"}>Submit application</Button>
+          <Button size="lg" onClick={submit} disabled={!valid} loading={state === "loading"}>{tr("Submit application")}</Button>
         )}
       </div>
     </Container>
   );
 }
 
-function ChipGroup({ label, options, selected, onToggle }: { label: string; options: string[]; selected: string[]; onToggle: (v: string) => void }) {
+function ChipGroup({ label, options, selected, onToggle, display = (o) => o }: { label: string; options: string[]; selected: string[]; onToggle: (v: string) => void; display?: (o: string) => string }) {
   return (
     <div>
       <p className="text-sm font-semibold">{label}</p>
@@ -259,7 +263,7 @@ function ChipGroup({ label, options, selected, onToggle }: { label: string; opti
               aria-pressed={on}
               className={cn("rounded-full px-3.5 py-2 text-sm font-medium transition", on ? "bg-plum text-white" : "bg-cream ring-1 ring-line hover:ring-lavender")}
             >
-              {o}
+              {display(o)}
             </button>
           );
         })}

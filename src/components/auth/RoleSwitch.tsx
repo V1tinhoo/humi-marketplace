@@ -3,14 +3,16 @@
 import { Sparkles, UserRound } from "lucide-react";
 import type { UserRole } from "@/types";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 export function RoleSwitch({ value, onChange }: { value: UserRole; onChange: (r: UserRole) => void }) {
+  const tr = useT();
   const opts: { id: UserRole; label: string; sub: string; icon: typeof UserRound }[] = [
-    { id: "customer", label: "I want to connect", sub: "Member", icon: UserRound },
-    { id: "host", label: "I want to host", sub: "Host", icon: Sparkles },
+    { id: "customer", label: tr("I want to connect"), sub: tr("Member"), icon: UserRound },
+    { id: "host", label: tr("I want to host"), sub: tr("Host"), icon: Sparkles },
   ];
   return (
-    <div className="grid grid-cols-2 gap-1 rounded-2xl bg-lilac/60 p-1" role="radiogroup" aria-label="Account type">
+    <div className="grid grid-cols-2 gap-1 rounded-2xl bg-lilac/60 p-1" role="radiogroup" aria-label={tr("Account type")}>
       {opts.map((o) => (
         <button
           key={o.id}

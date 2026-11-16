@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 import { notifyWalletChanged } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 type State = "checking" | "waiting" | "approved" | "rejected" | "error" | null;
 
@@ -16,6 +17,7 @@ const MAX_MS = 15 * 60 * 1000; // a Pix can take a few minutes
  * this page never decides whether something was paid.
  */
 export function TopupReturn() {
+  const tr = useT();
   const [state, setState] = useState<State>(null);
 
   useEffect(() => {
@@ -71,8 +73,8 @@ export function TopupReturn() {
     <div role="status" className={cn("mt-6 flex items-start gap-3 rounded-2xl p-4 text-plum", view.cls)}>
       <span className="mt-0.5">{view.icon}</span>
       <div>
-        <p className="font-semibold">{view.title}</p>
-        <p className="text-sm text-plum-soft">{view.text}</p>
+        <p className="font-semibold">{tr(view.title)}</p>
+        <p className="text-sm text-plum-soft">{tr(view.text)}</p>
       </div>
     </div>
   );

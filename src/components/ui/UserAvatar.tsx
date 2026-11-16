@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { cn, initials } from "@/lib/utils";
 import { isOptimizableImage } from "@/lib/images";
+import { useT } from "@/i18n/client";
 
 /**
  * The signed-in person's photo, falling back to their initials when there's
@@ -23,6 +24,7 @@ export function UserAvatar({
   /** Styling for the initials fallback (background, text size). */
   fallbackClassName?: string;
 }) {
+  const tr = useT();
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const showPhoto = !!src && failedSrc !== src;
 
@@ -31,7 +33,7 @@ export function UserAvatar({
       {showPhoto ? (
         <Image
           src={src}
-          alt={`Photo of ${name}`}
+          alt={tr("Photo of {name}", { name })}
           fill
           sizes={sizes}
           className="object-cover"

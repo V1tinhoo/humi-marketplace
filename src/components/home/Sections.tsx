@@ -20,17 +20,19 @@ import { Container, SectionHeading } from "@/components/ui/primitives";
 import { CategoryCard } from "./CategoryCard";
 import { categories } from "@/data/categories";
 import { hosts } from "@/data/hosts";
-import { t } from "@/i18n";
+import { getDict, getT } from "@/i18n/server";
 import { cn } from "@/lib/utils";
 
-export function CategoriesSection() {
+export async function CategoriesSection() {
+  const t = await getDict();
+  const tr = await getT();
   return (
     <section className="py-20 lg:py-28">
       <Container>
         <SectionHeading title={t.categories.title} subtitle={t.categories.subtitle} />
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {categories.map((c, i) => (
-            <CategoryCard key={c.id} category={c} index={i} />
+            <CategoryCard key={c.id} category={{ ...c, title: tr(c.title), description: tr(c.description) }} index={i} browseLabel={tr("Browse hosts")} />
           ))}
         </div>
       </Container>
@@ -40,7 +42,8 @@ export function CategoriesSection() {
 
 const stepIcons = [Search, SlidersHorizontal, MessagesSquare, Star];
 
-export function HowItWorksSection({ withHeading = true }: { withHeading?: boolean }) {
+export async function HowItWorksSection({ withHeading = true }: { withHeading?: boolean }) {
+  const t = await getDict();
   return (
     <section className="bg-blush/60 py-20 lg:py-28" id="how-it-works">
       <Container>
@@ -71,7 +74,9 @@ export function HowItWorksSection({ withHeading = true }: { withHeading?: boolea
   );
 }
 
-export function HostCtaSection() {
+export async function HostCtaSection() {
+  const t = await getDict();
+  const tr = await getT();
   const faces = ["maya", "mateo", "priya", "jonas", "zara"].map((id) => hosts.find((h) => h.id === id)!);
   return (
     <section className="py-20 lg:py-28">
@@ -104,7 +109,7 @@ export function HostCtaSection() {
                   <Image key={f.id} src={f.photo} alt="" width={40} height={40} className="size-10 rounded-full object-cover ring-2 ring-white" />
                 ))}
               </div>
-              <p className="text-sm text-plum">Join hosts from 14 countries in our sample community.</p>
+              <p className="text-sm text-plum">{tr("Join hosts from 14 countries in our sample community.")}</p>
             </div>
           </div>
         </div>
@@ -115,7 +120,9 @@ export function HostCtaSection() {
 
 const trustIcons = [BadgeCheck, CreditCard, Star, Flag, ScrollText, Eye];
 
-export function TrustSection() {
+export async function TrustSection() {
+  const t = await getDict();
+  const tr = await getT();
   return (
     <section className="py-20 lg:py-28">
       <Container>
@@ -127,7 +134,7 @@ export function TrustSection() {
             <h2 className="mt-6 text-balance text-3xl font-bold tracking-tight sm:text-4xl">{t.trust.title}</h2>
             <p className="mt-4 text-lg text-plum-soft">{t.trust.subtitle}</p>
             <ButtonLink href="/safety" variant="secondary" className="mt-8">
-              Read our safety approach
+              {tr("Read our safety approach")}
             </ButtonLink>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -138,7 +145,7 @@ export function TrustSection() {
                   <div className="flex items-center justify-between">
                     <Icon className="size-6 text-plum" strokeWidth={1.75} />
                     <span className="rounded-full bg-cream px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-plum-soft ring-1 ring-line">
-                      Planned
+                      {tr("Planned")}
                     </span>
                   </div>
                   <h3 className="mt-5 text-lg font-bold">{item.title}</h3>
@@ -153,7 +160,9 @@ export function TrustSection() {
   );
 }
 
-export function FinalCtaSection() {
+export async function FinalCtaSection() {
+  const t = await getDict();
+  const tr = await getT();
   return (
     <section className="pb-20 lg:pb-28">
       <Container>
@@ -169,7 +178,7 @@ export function FinalCtaSection() {
             {t.finalCta.cta} <ArrowRight className="size-4" />
           </ButtonLink>
           <p className="relative mt-6 flex items-center justify-center gap-1.5 text-xs text-white/60">
-            <CalendarClock className="size-3.5" /> Free to browse. 18+ only.
+            <CalendarClock className="size-3.5" /> {tr("Free to browse. 18+ only.")}
           </p>
         </div>
       </Container>

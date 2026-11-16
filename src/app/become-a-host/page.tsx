@@ -4,21 +4,28 @@ import { CalendarRange, CircleDollarSign, Globe2, HeartHandshake, ShieldCheck, S
 import { HostCtaButtons } from "@/components/home/HostCtaButtons";
 import { Container, SectionHeading } from "@/components/ui/primitives";
 import { getHost } from "@/data/hosts";
-import { PLATFORM_LIMITS, formatPrice } from "@/lib/utils";
-import { t } from "@/i18n";
+import { getDict, getLocale, getT } from "@/i18n/server";
+import { countryLabel } from "@/data/places";
+import type { Translate } from "@/i18n";
 
-export const metadata: Metadata = { title: "Become a host" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getDict()).nav.becomeHost };
+}
 
 const benefitIcons = [CalendarRange, Sparkles, CircleDollarSign, Globe2, HeartHandshake];
 
-const faqs = [
-  { q: "Who can host?", a: "Anyone 18 or older who enjoys meeting people and can hold a friendly, respectful conversation in at least one language. Hosts will need to pass identity and age verification before going live." },
-  { q: "How much can I charge?", a: `You choose your own rate between ${formatPrice(PLATFORM_LIMITS.minPer30)} and ${formatPrice(PLATFORM_LIMITS.maxPer30)} per 30 minutes. You can change it any time.` },
-  { q: "When do I get paid?", a: "Earnings from completed sessions will be paid out monthly through our payment partner. Payouts aren't active during the beta preview." },
-  { q: "What kind of sessions are allowed?", a: "Friendly conversation, games, language practice and cultural exchange. HUMI isn't a dating service, and hosts may not offer therapy, medical advice or anything sexual." },
+const faqsFor = (tr: Translate) => [
+  { q: tr("Who can host?"), a: tr("Anyone 18 or older who enjoys meeting people and can hold a friendly, respectful conversation in at least one language. Hosts will need to pass identity and age verification before going live.") },
+  { q: tr("How much can I charge?"), a: tr("You choose your own price per minute within the platform limits, and you can change it any time.") },
+  { q: tr("When do I get paid?"), a: tr("Earnings from completed calls are paid out through our payment partner. Payouts aren't active during the beta preview.") },
+  { q: tr("What kind of sessions are allowed?"), a: tr("Friendly conversation, games, language practice and cultural exchange. HUMI isn't a dating service, and hosts may not offer therapy, medical advice or anything sexual.") },
 ];
 
-export default function BecomeHostPage() {
+export default async function BecomeHostPage() {
+  const t = await getDict();
+  const tr = await getT();
+  const faqs = faqsFor(tr);
+  const locale = await getLocale();
   const faces = ["amara", "walter", "priya", "mateo"].map((id) => getHost(id)!);
   return (
     <>
@@ -26,7 +33,7 @@ export default function BecomeHostPage() {
         <div aria-hidden className="absolute -right-24 top-10 size-96 rounded-full border-[48px] border-white/40" />
         <Container className="relative grid items-center gap-12 py-16 lg:grid-cols-2 lg:py-24">
           <div className="animate-fade-up">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum-soft">Become a host</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum-soft">{t.nav.becomeHost}</p>
             <h1 className="mt-4 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight text-plum-deep sm:text-6xl">{t.host.title}</h1>
             <p className="mt-6 max-w-lg text-lg text-plum">{t.host.body}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -36,8 +43,8 @@ export default function BecomeHostPage() {
           <div className="grid grid-cols-2 gap-4">
             {faces.map((f, i) => (
               <div key={f.id} className={`relative aspect-[4/5] overflow-hidden rounded-[1.75rem] shadow-lift ring-4 ring-white ${i % 2 ? "mt-10" : ""}`}>
-                <Image src={f.photo} alt={`${f.firstName}, sample host`} fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover" priority={i < 2} />
-                <span className="absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold backdrop-blur">{f.firstName} · {f.country}</span>
+                <Image src={f.photo} alt={tr("{name}, sample host", { name: f.firstName })} fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover" priority={i < 2} />
+                <span className="absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold backdrop-blur">{f.firstName} · {countryLabel(f.country, locale)}</span>
               </div>
             ))}
           </div>
@@ -46,7 +53,7 @@ export default function BecomeHostPage() {
 
       <section className="py-20 lg:py-28">
         <Container>
-          <SectionHeading title="Hosting, on your terms." subtitle="You decide when you're available, what you talk about, and what your time is worth." />
+          <SectionHeading title={tr("Hosting, on your terms.")} subtitle={tr("You decide when you're available, what you talk about, and what your time is worth.")} />
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {t.host.benefits.map((b, i) => {
               const Icon = benefitIcons[i];
@@ -64,13 +71,13 @@ export default function BecomeHostPage() {
       <section className="bg-white py-20 lg:py-28">
         <Container className="grid gap-12 lg:grid-cols-2">
           <div>
-            <SectionHeading title="How applying works" />
+            <SectionHeading title={tr("How applying works")} />
             <ol className="mt-10 space-y-6">
               {[
-                ["Create your host account", "Tell us your first name and email."],
-                ["Build your profile", "Add your interests, languages, a photo, and your rate."],
-                ["Get verified", "Identity and age verification (planned for launch)."],
-                ["Start hosting", "Open your calendar and meet people from around the world."],
+                [tr("Create your host account"), tr("Tell us your first name and email.")],
+                [tr("Build your profile"), tr("Add your interests, languages, a photo, and your rate.")],
+                [tr("Get verified"), tr("Identity and age verification (planned for launch).")],
+                [tr("Start hosting"), tr("Open your calendar and meet people from around the world.")],
               ].map(([title, body], i) => (
                 <li key={title} className="flex gap-4">
                   <span className="grid size-10 shrink-0 place-items-center rounded-full bg-lavender font-bold text-plum-deep">{i + 1}</span>
@@ -83,11 +90,11 @@ export default function BecomeHostPage() {
             </ol>
             <div className="mt-8 flex items-start gap-3 rounded-2xl bg-blush p-4 text-sm">
               <ShieldCheck className="mt-0.5 size-5 shrink-0" />
-              <p>Hosts must be 18+, follow our community guidelines, and never share personal contact details or move sessions off the platform.</p>
+              <p>{tr("Hosts must be 18+, follow our community guidelines, and never share personal contact details or move sessions off the platform.")}</p>
             </div>
           </div>
           <div>
-            <SectionHeading title="Questions" />
+            <SectionHeading title={tr("Questions")} />
             <div className="mt-10 divide-y divide-line rounded-[var(--radius-card)] bg-cream ring-1 ring-line">
               {faqs.map((f) => (
                 <details key={f.q} className="group p-5 [&_summary::-webkit-details-marker]:hidden">
@@ -105,7 +112,7 @@ export default function BecomeHostPage() {
 
       <section className="py-20">
         <Container className="text-center">
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight sm:text-4xl">Ready to meet the world?</h2>
+          <h2 className="text-balance text-3xl font-extrabold tracking-tight sm:text-4xl">{tr("Ready to meet the world?")}</h2>
           <HostCtaButtons single className="mt-8 justify-center" />
         </Container>
       </section>

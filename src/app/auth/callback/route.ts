@@ -66,7 +66,15 @@ export async function GET(request: NextRequest) {
   else if (tokenHash && type) ({ error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type }));
   else error = { message: "Missing code" };
 
-  if (error) return loginRedirect(origin, "This sign-in link is invalid or has expired. Please try again.");
+  if (error) {
+    console.error("[auth/callback] exchange failed:", error.message);
+    // The PKCE verifier lives in a cookie of the site where sign-in STARTED. If Supabase sent the
+    // person back to a different address (not in Supabase → Auth → Redirect URLs), it isn't there.
+    if (/code verifier/i.test(error.message)) {
+      return loginRedirect(origin, "Sign-in came back to a different address than where it started. Please try again from this page.");
+    }
+    return loginRedirect(origin, "This sign-in link is invalid or has expired. Please try again.");
+  }
 
   // Make sure the profile exists (social sign-ups) and pick up name/photo from the provider
   // when they're empty. Never creates duplicates and never changes the role.
