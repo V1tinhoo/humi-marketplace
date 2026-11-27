@@ -19,6 +19,7 @@ export function Navbar() {
   const tr = useT();
   const links = [
     { href: "/explore", label: t.nav.explore },
+    { href: "/praticar", label: tr("Practise languages") },
     { href: "/how-it-works", label: t.nav.howItWorks },
     { href: "/become-a-host", label: t.nav.becomeHost },
   ];

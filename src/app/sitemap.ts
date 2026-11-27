@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getHosts } from "@/lib/data/hosts";
 import { SITE_URL } from "@/lib/site";
+import { SEO_PAGES } from "@/data/seo-pages";
 
 export const revalidate = 3600;
 
@@ -8,6 +9,8 @@ const PAGES: [path: string, priority: number, freq: "daily" | "weekly" | "monthl
   ["/", 1, "daily"],
   ["/explore", 0.9, "daily"],
   ["/pratique-idiomas", 0.9, "weekly"],
+  ["/praticar", 0.9, "weekly"],
+  ...SEO_PAGES.map((p) => [`/praticar/${p.slug}`, 0.85, "weekly"] as [string, number, "weekly"]),
   ["/how-it-works", 0.8, "monthly"],
   ["/help", 0.8, "monthly"],
   ["/become-a-host", 0.8, "monthly"],

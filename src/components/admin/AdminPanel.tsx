@@ -573,6 +573,14 @@ const SETTINGS: Record<string, { label: string; unit: "brl" | "percent" | "secon
   referral_bonus_cents: { label: "Referral credit per friend (0 = off)", unit: "brl" },
   auto_suspend_reports: { label: "Reports from different people (7 days) that suspend an account (0 = off)", unit: "count" },
   declined_call_limit: { label: "Declined calls in a row before a 24 h pause (0 = off)", unit: "count" },
+  package_1_minutes: { label: "Package 1: minutes (0 = off)", unit: "count" },
+  package_1_discount_bps: { label: "Package 1: discount", unit: "percent" },
+  package_2_minutes: { label: "Package 2: minutes (0 = off)", unit: "count" },
+  package_2_discount_bps: { label: "Package 2: discount", unit: "percent" },
+  package_3_minutes: { label: "Package 3: minutes (0 = off)", unit: "count" },
+  package_3_discount_bps: { label: "Package 3: discount", unit: "percent" },
+  package_validity_days: { label: "Package validity (unused minutes go back to the wallet)", unit: "days" },
+  package_renewal_days: { label: "Days between monthly package renewals", unit: "days" },
 };
 const toInput = (unit: string, v: number) => (unit === "brl" ? (v / 100).toFixed(2).replace(".", ",") : unit === "percent" ? String(v / 100).replace(".", ",") : String(v));
 const fromInput = (unit: string, s: string) => {

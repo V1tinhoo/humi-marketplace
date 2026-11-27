@@ -41,6 +41,7 @@ import { ErrorPanel, StatusBadge, parseList } from "@/components/account/shared"
 import { categories as CATEGORY_LIST } from "@/data/categories";
 import { cn, formatPrice } from "@/lib/utils";
 import { formatBRL, formatDuration, parseReaisToCents } from "@/lib/money";
+import { canonicalLanguages } from "@/lib/languages";
 import { describeInZone, isValidTimeZone, tzLabel, viewerTimeZone } from "@/lib/time";
 import type { EarningsSummaryRow, HostEarningRow, MyCallRow, PayoutAccountRow, PayoutRecordRow, Database, CallTypeDb, HostAvailabilityRow, HostProfileRow, MyHostBookingRow, ProfileRow, PublicReviewRow } from "@/types/database";
 
@@ -613,7 +614,7 @@ function ProfileEditor({ data, reload }: { data: DashData; reload: () => Promise
       supabase.from("profiles").update({
         country: f.country.trim() || null,
         region: f.region.trim() || null,
-        languages: parseList(f.languages, 10),
+        languages: canonicalLanguages(parseList(f.languages, 10)),
         interests: parseList(f.interests, 20),
       }).eq("id", profile.id),
     ]);

@@ -189,4 +189,12 @@ export const admin: Record<string, string> = {
   "Online until {time}": "Online até {time}",
   "For how long": "Por quanto tempo",
   "Choose between 1 and 72 hours (0 cancels).": "Escolha entre 1 e 72 horas (0 cancela).",
+  "Package 1: minutes (0 = off)": "Pacote 1: minutos (0 = desligado)",
+  "Package 1: discount": "Pacote 1: desconto",
+  "Package 2: minutes (0 = off)": "Pacote 2: minutos (0 = desligado)",
+  "Package 2: discount": "Pacote 2: desconto",
+  "Package 3: minutes (0 = off)": "Pacote 3: minutos (0 = desligado)",
+  "Package 3: discount": "Pacote 3: desconto",
+  "Package validity (unused minutes go back to the wallet)": "Validade do pacote (minutos não usados voltam para a carteira)",
+  "Days between monthly package renewals": "Dias entre as renovações mensais do pacote",
 };

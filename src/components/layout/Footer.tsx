@@ -56,7 +56,20 @@ const socials = [
 export async function Footer() {
   const t = await getDict();
   const tr = await getT();
-  const columns = columnsFor(t);
+  const columns = [
+    ...columnsFor(t),
+    {
+      title: tr("Practise languages"),
+      links: [
+        { href: "/praticar/ingles", label: tr("English") },
+        { href: "/praticar/espanhol", label: tr("Spanish") },
+        { href: "/praticar/frances", label: tr("French") },
+        { href: "/praticar/italiano", label: tr("Italian") },
+        { href: "/praticar/alemao", label: tr("German") },
+        { href: "/praticar", label: tr("All languages") },
+      ],
+    },
+  ];
   return (
     <footer className="border-t border-line bg-white">
       <Container className="py-14 lg:py-20">
@@ -79,7 +92,7 @@ export async function Footer() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {columns.map((col) => (
               <div key={col.title}>
                 <h3 className="text-sm font-semibold text-plum">{col.title}</h3>

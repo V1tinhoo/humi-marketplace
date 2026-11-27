@@ -7,6 +7,7 @@ import { RequireAuth } from "@/components/dashboard/RequireAuth";
 import { TopupPanel } from "@/components/wallet/TopupPanel";
 import { TopupReturn } from "@/components/wallet/TopupReturn";
 import { InviteFriends } from "@/components/growth/InviteFriends";
+import { MyPackages } from "@/components/packages/MyPackages";
 import { Container, DemoNotice, Skeleton } from "@/components/ui/primitives";
 import { useAuth } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -117,6 +118,8 @@ function WalletView() {
               </p>
             )}
           </div>
+
+          <MyPackages />
 
           <div>
             <div className="flex gap-1 border-b border-line" role="tablist">

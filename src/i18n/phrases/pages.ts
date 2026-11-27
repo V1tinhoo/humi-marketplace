@@ -85,4 +85,6 @@ export const pages: Record<string, string> = {
   "Welcome bonus": "Bônus de boas-vindas",
   "Referral bonus": "Bônus de indicação",
   "Bonus reversed (refund)": "Bônus estornado (reembolso)",
+  "Practise languages": "Pratique idiomas",
+  "All languages": "Todos os idiomas",
 };

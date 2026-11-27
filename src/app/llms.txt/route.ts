@@ -28,7 +28,7 @@ const BODY = `# HUMI
 ## Páginas principais
 - [Início](${SITE_URL}/): visão geral e hosts em destaque
 - [Explorar hosts](${SITE_URL}/explore): todas as pessoas disponíveis, com idiomas, preço e avaliações
-- [Praticar idiomas](${SITE_URL}/pratique-idiomas): conversação em inglês, espanhol e outros idiomas
+- [Praticar idiomas](${SITE_URL}/praticar): páginas por idioma — [inglês](${SITE_URL}/praticar/ingles), [conversação em inglês](${SITE_URL}/praticar/conversacao-em-ingles), [inglês para entrevista](${SITE_URL}/praticar/ingles-para-entrevista), [espanhol](${SITE_URL}/praticar/espanhol), [francês](${SITE_URL}/praticar/frances), [italiano](${SITE_URL}/praticar/italiano), [alemão](${SITE_URL}/praticar/alemao)
 - [Como funciona](${SITE_URL}/how-it-works)
 - [Central de ajuda e perguntas frequentes](${SITE_URL}/help): preços, cobrança, reembolso e cancelamento
 - [Seja um host](${SITE_URL}/become-a-host): como ganhar dinheiro conversando

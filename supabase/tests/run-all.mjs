@@ -36,6 +36,7 @@ const tests = [
   ["default-prices.test.mjs", "20261116200000_lower_default_prices.sql"],
   ["admin-online.test.mjs", "20261116210000_admin_host_online.sql"],
   ["force-online.test.mjs", "20261116220000_force_online.sql"],
+  ["packages.test.mjs", "20261117100000_minute_packages.sql"],
 ];
 
 let failed = 0;

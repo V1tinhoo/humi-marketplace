@@ -30,6 +30,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const { data: w } = await supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle();
     const row = (w ?? {}) as { balance_cents?: number; test_balance_cents?: number };
     balance = call?.livemode === false && row.test_balance_cents != null ? row.test_balance_cents : (row.balance_cents ?? 0);
+    // Minutes left on a package with this host count as talk time too (shown in the call meter).
+    const { data: pkgSeconds } = await (supabase as unknown as { rpc: (f: string, a: object) => PromiseLike<{ data: number | null }> }).rpc("call_package_left", { p_call: id });
+    if (pkgSeconds && call?.price_cents_per_minute) balance += Math.floor((pkgSeconds * call.price_cents_per_minute) / 60);
   }
   return json({ call, balanceCents: balance, serverTime: new Date().toISOString() });
 }

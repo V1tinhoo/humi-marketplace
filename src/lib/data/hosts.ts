@@ -6,6 +6,7 @@
 import { hosts as sampleHosts, getHost as getSampleHost } from "@/data/hosts";
 import { reviewsForHost } from "@/data/reviews";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { canonicalLanguages } from "@/lib/languages";
 import { createSupabasePublicClient } from "@/lib/supabase/server";
 import type { CategoryId, Host, Review, SessionFormat } from "@/types";
 import type { PublicHostRow, PublicReviewRow } from "@/types/database";
@@ -29,7 +30,7 @@ export function rowToHost(r: PublicHostRow): Host {
     country: r.country ?? "",
     city: r.city ?? "",
     region: r.region ?? "",
-    languages: r.languages ?? [],
+    languages: canonicalLanguages(r.languages),
     interests: r.interests ?? [],
     categories: (r.categories ?? []).filter((c): c is CategoryId => CATEGORY_IDS.includes(c as CategoryId)),
     tagline: r.tagline ?? "",

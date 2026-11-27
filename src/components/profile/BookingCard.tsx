@@ -13,6 +13,7 @@ import { useWalletBalance } from "@/lib/wallet";
 import { formatBRL, formatDuration, hostPriceCents } from "@/lib/money";
 import { useT } from "@/i18n/client";
 import { useCallRules } from "@/components/safety/CallRules";
+import { HostPackages } from "@/components/packages/HostPackages";
 
 /**
  * Host profile sidebar: per-minute prices, the visitor's balance, "Call now" (when the host
@@ -116,6 +117,8 @@ export function BookingCard({ host }: { host: Host }) {
           <CalendarDays className="size-4" /> {tr("Schedule a time")}
         </Link>
         <p className="mt-2 text-center text-xs text-plum-soft">{tr("Reserving a time is free — you pay per minute during the call.")}</p>
+
+        <HostPackages hostId={host.id} hostName={host.firstName} format={format} live={live} />
 
         <ul className="mt-6 space-y-2.5 border-t border-line pt-5 text-sm text-plum-soft">
           {host.responseTime && <li className="flex items-center gap-2.5"><Clock className="size-4 text-plum" /> {tr(host.responseTime)}</li>}

@@ -4,6 +4,7 @@
  * nothing here touches the real marketplace or real money.
  */
 import { windowsToWeekly } from "@/lib/availability";
+import { canonicalLanguages } from "@/lib/languages";
 import type { Host, SessionFormat } from "@/types";
 
 export type DemoHostRow = {
@@ -84,7 +85,7 @@ export function demoToHost(r: DemoHostRow): Host {
     age: r.age ?? undefined,
     country: r.country,
     city: r.city,
-    languages: r.languages ?? [],
+    languages: canonicalLanguages(r.languages),
     interests: r.interests ?? [],
     categories: (r.categories ?? []) as Host["categories"],
     tagline: r.tagline,
